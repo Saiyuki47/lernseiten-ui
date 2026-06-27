@@ -1,6 +1,7 @@
 // --- Quiz ---
 // Sieben Fragetypen mit reichem Feedback. Jede Option kann begründen, warum sie
 // (bei falscher Wahl) nicht stimmt; jede Frage hat eine Erklärung der Lösung.
+import type { ReactNode } from 'react'
 
 export interface QuizOption {
   text: string
@@ -14,6 +15,10 @@ interface QuizBasis {
   erklaerung: string
   /** Optionale Quelle, z.B. "Übungsblatt 3, Aufgabe 2". */
   quelle?: string
+  /** Optionale (nachgebaute) Abbildung – wird in der Lösung nach dem Beantworten gezeigt. */
+  bild?: ReactNode
+  /** Zusatzfrage (z.B. Leons Unterlagen): im "Alle"-Modus per Schalter ausblendbar. */
+  extra?: boolean
 }
 
 /** Single-Choice: genau eine von vier Optionen ist richtig. */

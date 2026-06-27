@@ -31,6 +31,7 @@ function gruppeVon(f: QuizFrage): string {
 export function Quiz({ fragen }: { fragen: QuizFrage[] }) {
   const { wrongIds, markAnswer } = useWrongTracker()
   const [filter, setFilter] = useState<string>('alle')
+  const [includeExtra, setIncludeExtra] = useState(true)
 
   // Distinkte Übungsblatt-Gruppen in Datenreihenfolge.
   const gruppen = useMemo(() => {
@@ -51,12 +52,20 @@ export function Quiz({ fragen }: { fragen: QuizFrage[] }) {
     [fragen, wrongIds],
   )
 
+  // Zusatzfragen (extra: true) – z.B. Leons Unterlagen – im "Alle"-Modus ausblendbar.
+  // Label = ihr Quellen-Gruppenname.
+  const extraGruppe = useMemo(() => {
+    const f = fragen.find(x => x.extra)
+    return f ? gruppeVon(f) : null
+  }, [fragen])
+  const extraAnzahl = useMemo(() => fragen.reduce((n, f) => (f.extra ? n + 1 : n), 0), [fragen])
+
   const aktiveFragen = useMemo(() => {
     if (filter === 'falsche') return fragen.filter(f => wrongIds.has(f.frage))
-    if (filter === 'alle') return fragen
+    if (filter === 'alle') return includeExtra ? fragen : fragen.filter(f => !f.extra)
     return fragen.filter(f => gruppeVon(f) === filter)
     // wrongIds bewusst nur für den "falsche"-Filter relevant; Snapshot reicht.
-  }, [fragen, filter, wrongIds])
+  }, [fragen, filter, wrongIds, includeExtra])
 
   return (
     <div>
@@ -71,7 +80,7 @@ export function Quiz({ fragen }: { fragen: QuizFrage[] }) {
           className={`filter-btn${filter === 'alle' ? ' on' : ''}`}
           onClick={() => setFilter('alle')}
         >
-          Alle ({fragen.length})
+          Alle ({includeExtra ? fragen.length : fragen.length - extraAnzahl})
         </button>
         {gruppen.length > 1 &&
           gruppen.map(g => (
@@ -95,7 +104,24 @@ export function Quiz({ fragen }: { fragen: QuizFrage[] }) {
         )}
       </div>
 
-      <QuizRun key={filter} fragen={aktiveFragen} onAnswer={markAnswer} />
+      {filter === 'alle' && extraGruppe && (
+        <label
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            fontSize: '0.85rem',
+            margin: '0 0 1rem',
+            color: 'var(--text2, inherit)',
+            cursor: 'pointer',
+          }}
+        >
+          <input type="checkbox" checked={includeExtra} onChange={e => setIncludeExtra(e.target.checked)} />
+          {extraGruppe} einbeziehen
+        </label>
+      )}
+
+      <QuizRun key={`${filter}:${includeExtra}`} fragen={aktiveFragen} onAnswer={markAnswer} />
     </div>
   )
 }
@@ -205,6 +231,8 @@ function QuizRun({
         {q.art === 'kategorien' && <KategorienQuestion key={order[qi]} q={q} onDone={handleDone} />}
         {q.art === 'eingabe' && <EingabeQuestion key={order[qi]} q={q} onDone={handleDone} />}
         {q.art === 'wahrfalsch' && <WahrFalschQuestion key={order[qi]} q={q} onDone={handleDone} />}
+
+        {answered && q.bild && <div className="quiz-bild" style={{ marginTop: '0.75rem' }}>{q.bild}</div>}
 
         <div className="quiz-nav">
           <span className="score-pill">{score} / {qi + (answered ? 1 : 0)} richtig{q.quelle ? ` · ${q.quelle}` : ''}</span>
