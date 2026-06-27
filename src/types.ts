@@ -13,8 +13,12 @@ interface QuizBasis {
   frage: string
   /** Erklärung der korrekten Lösung – wird nach dem Beantworten immer gezeigt. */
   erklaerung: string
-  /** Optionale Quelle, z.B. "Übungsblatt 3, Aufgabe 2". */
+  /** Optionale Quelle, z.B. "Übungsblatt 3, Aufgabe 2" oder "1.2 Wirtschaftliches Handeln". */
   quelle?: string
+  /** Optionaler Gruppen-Schlüssel für den Filter-Chip (überschreibt quelle.split(',')[0]). */
+  gruppe?: string
+  /** Optionale Seitenzahl der Quelle (z.B. PDF-Seite). */
+  seite?: number
   /** Optionale (nachgebaute) Abbildung – wird in der Lösung nach dem Beantworten gezeigt. */
   bild?: ReactNode
   /** Zusatzfrage (z.B. Leons Unterlagen): im "Alle"-Modus per Schalter ausblendbar. */

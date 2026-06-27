@@ -23,9 +23,19 @@ import { useEnterKey } from './useNumberKeys'
 // ---------------------------------------------------------------------------
 type Phase = 'playing' | 'answered' | 'finished'
 
-// Gruppen-Label einer Frage, z.B. "Übungsblatt 3" aus quelle "Übungsblatt 3, Aufgabe 2".
+// Gruppen-Label einer Frage (Filter-Chip): explizite `gruppe` oder erstes
+// quelle-Segment ("Übungsblatt 3" aus "Übungsblatt 3, Aufgabe 2").
 function gruppeVon(f: QuizFrage): string {
+  if (f.gruppe) return f.gruppe
   return f.quelle ? f.quelle.split(',')[0].trim() : 'Ohne Quelle'
+}
+
+// Anzeige-Text der Quelle inkl. optionaler Seite + Gruppe (PDF), z.B.
+// "1.2 Wirtschaftliches Handeln, Seite 2, Leons Unterlagen".
+function quelleText(f: QuizFrage): string {
+  return [f.quelle, f.seite != null ? `Seite ${f.seite}` : null, f.gruppe]
+    .filter(Boolean)
+    .join(', ')
 }
 
 export function Quiz({ fragen }: { fragen: QuizFrage[] }) {
@@ -234,8 +244,17 @@ function QuizRun({
 
         {answered && q.bild && <div className="quiz-bild" style={{ marginTop: '0.75rem' }}>{q.bild}</div>}
 
+        {q.quelle && (
+          <p
+            className="quiz-quelle"
+            style={{ fontSize: '0.78rem', color: 'var(--text2, inherit)', opacity: 0.85, margin: '0.75rem 0 0' }}
+          >
+            📄 {quelleText(q)}
+          </p>
+        )}
+
         <div className="quiz-nav">
-          <span className="score-pill">{score} / {qi + (answered ? 1 : 0)} richtig{q.quelle ? ` · ${q.quelle}` : ''}</span>
+          <span className="score-pill">{score} / {qi + (answered ? 1 : 0)} richtig</span>
           <button type="button" className="nav-btn" disabled={!answered} onClick={handleNext}>
             {qi + 1 >= total ? 'Ergebnis →' : 'Weiter →'}
           </button>
