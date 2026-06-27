@@ -10,6 +10,8 @@ export type { SearchItem } from './GlobalSearch'
 export { SiteNav } from './SiteNav'
 export { LERNSEITEN } from './siteList'
 export type { LernSeite } from './siteList'
+export { Moodle } from './Moodle'
+export type { DateiFile, DateiFolder, DateiTyp } from './Moodle'
 export type {
   QuizFrage,
   QuizOption,
