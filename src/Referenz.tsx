@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { Children, useEffect, useRef, useState, type ReactNode } from 'react'
 import { getHashDetail, setHashDetail } from './useHashTab'
 
 // ---------------------------------------------------------------------------
@@ -12,10 +12,16 @@ import { getHashDetail, setHashDetail } from './useHashTab'
 // Komponente selbst (`lsref-*`), damit keine App eigene Klassen braucht.
 // ---------------------------------------------------------------------------
 
-/** Eine aufklappbare Beispielgruppe (ein Szenario, mehrere Beispiele). */
+/** Eine aufklappbare Beispielgruppe (ein Szenario, mehrere Beispiele als Text). */
 export interface ReferenzBeispiel {
   szenario: string
   beispiele: string[]
+}
+
+/** Beispielgruppe mit bereits gerenderten Beispielen (FormelText/strukturierte Inhalte). */
+export interface ReferenzBeispielNode {
+  szenario: string
+  beispiele: ReactNode[]
 }
 
 /** Eine Referenz-Karte = ein Thema, von Grund auf erklärt. */
@@ -23,14 +29,23 @@ export interface ReferenzKarte {
   /** Stabiler Slug für Inhaltsverzeichnis + Deep-Link (#<tab>/<id>). */
   id: string
   titel: string
-  inhalt: string
+  /** Text-Inhalt (über `render` gerendert) – ignoriert, wenn `inhaltNode` gesetzt ist. */
+  inhalt?: string
+  /** Fertig gerenderter Inhalt (z.B. FormelText/strukturierte Blöcke) statt `inhalt`. */
+  inhaltNode?: ReactNode
+  /** Optional fertig gerenderter Titel (statt `render(titel)`). */
+  titelNode?: ReactNode
+  /** Aufklappbare Beispiele als Text (über `render`). */
   beispiele?: ReferenzBeispiel[]
+  /** Aufklappbare Beispiele als fertige Nodes. */
+  beispieleNode?: ReferenzBeispielNode[]
 }
 
 interface Props {
   karten: ReferenzKarte[]
-  /** Block-Renderer für inhalt + Beispiele (z.B. text => <MathText block>…). */
-  render: (text: string) => ReactNode
+  /** Block-Renderer für Text-inhalt + Text-Beispiele (z.B. text => <MathText block>…).
+   *  Optional – nur nötig, wenn Karten `inhalt`/`beispiele` als Text nutzen. */
+  render?: (text: string) => ReactNode
   /** Inline-Renderer für Titel (Standard: render). */
   renderInline?: (text: string) => ReactNode
   /** Untertitel unter der Überschrift. */
@@ -47,6 +62,9 @@ function Rendered({ fn, text }: { fn: (t: string) => ReactNode; text: string }) 
   return <>{fn(text)}</>
 }
 
+// Standard-Renderer, wenn die App keinen `render` übergibt (reiner Text).
+const identity = (t: string): ReactNode => t
+
 export function Referenz({
   karten,
   render,
@@ -54,7 +72,8 @@ export function Referenz({
   intro = 'Jedes Thema von Grund auf erklärt – ohne Vorwissen verständlich.',
   tab = 'referenz',
 }: Props) {
-  const renderTitle = renderInline ?? render
+  const renderText = render ?? identity
+  const renderTitle = renderInline ?? render ?? identity
   const [activeId, setActiveId] = useState<string>(() => karten[0]?.id ?? '')
   const contentRef = useRef<HTMLDivElement>(null)
 
@@ -129,7 +148,7 @@ export function Referenz({
                   className={activeId === karte.id ? 'active' : ''}
                   onClick={e => handleNavClick(e, karte.id)}
                 >
-                  <Rendered fn={renderTitle} text={karte.titel} />
+                  {karte.titelNode ?? <Rendered fn={renderTitle} text={karte.titel} />}
                 </a>
               </li>
             ))}
@@ -143,8 +162,10 @@ export function Referenz({
               data-ref-id={karte.id}
               className="lsref-card"
             >
-              <h3><Rendered fn={renderTitle} text={karte.titel} /></h3>
-              <div className="lsref-text"><Rendered fn={render} text={karte.inhalt} /></div>
+              <h3>{karte.titelNode ?? <Rendered fn={renderTitle} text={karte.titel} />}</h3>
+              <div className="lsref-text">
+                {karte.inhaltNode ?? <Rendered fn={renderText} text={karte.inhalt ?? ''} />}
+              </div>
               {karte.beispiele?.map(gruppe => (
                 <details className="lsref-bsp" key={gruppe.szenario}>
                   <summary>
@@ -153,8 +174,19 @@ export function Referenz({
                   </summary>
                   <ol className="lsref-bsp-list">
                     {gruppe.beispiele.map(bsp => (
-                      <li key={bsp}><Rendered fn={render} text={bsp} /></li>
+                      <li key={bsp}><Rendered fn={renderText} text={bsp} /></li>
                     ))}
+                  </ol>
+                </details>
+              ))}
+              {karte.beispieleNode?.map(gruppe => (
+                <details className="lsref-bsp" key={gruppe.szenario}>
+                  <summary>
+                    Beispiele: {gruppe.szenario}{' '}
+                    <span className="lsref-bsp-n">({gruppe.beispiele.length})</span>
+                  </summary>
+                  <ol className="lsref-bsp-list">
+                    {Children.toArray(gruppe.beispiele.map(bsp => <li>{bsp}</li>))}
                   </ol>
                 </details>
               ))}
