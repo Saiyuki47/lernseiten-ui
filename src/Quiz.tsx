@@ -1,5 +1,6 @@
-import { useState, useCallback, type CSSProperties } from 'react'
+import { useState, useCallback, useMemo, useRef, type CSSProperties } from 'react'
 import { useQuizProgress } from './useQuizProgress'
+import { useWrongTracker } from './useWrongTracker'
 import type { QuizFrage } from './types'
 import { ProgressBadges } from './quiz/ProgressBadges'
 import { SingleQuestion } from './quiz/SingleQuestion'
@@ -15,27 +16,119 @@ import { useEnterKey } from './useNumberKeys'
 // ---------------------------------------------------------------------------
 // Quiz-Hauptkomponente. Die Fragen kommen als Prop (`fragen`), damit die Engine
 // inhaltsunabhängig bleibt und von allen Lernseiten geteilt werden kann.
+//
+// Aufbau: `Quiz` zeigt die Filterleiste (alle / pro Übungsblatt / nur falsche)
+// und wählt damit die aktive Fragenmenge; `QuizRun` spielt eine *feste* Menge
+// durch. Beim Filterwechsel erzwingt `key={filter}` einen frischen Durchlauf.
 // ---------------------------------------------------------------------------
 type Phase = 'playing' | 'answered' | 'finished'
 
+// Gruppen-Label einer Frage, z.B. "Übungsblatt 3" aus quelle "Übungsblatt 3, Aufgabe 2".
+function gruppeVon(f: QuizFrage): string {
+  return f.quelle ? f.quelle.split(',')[0].trim() : 'Ohne Quelle'
+}
+
 export function Quiz({ fragen }: { fragen: QuizFrage[] }) {
+  const { wrongIds, markAnswer } = useWrongTracker()
+  const [filter, setFilter] = useState<string>('alle')
+
+  // Distinkte Übungsblatt-Gruppen in Datenreihenfolge.
+  const gruppen = useMemo(() => {
+    const seen: string[] = []
+    for (const f of fragen) {
+      const g = gruppeVon(f)
+      if (!seen.includes(g)) seen.push(g)
+    }
+    return seen
+  }, [fragen])
+
+  const falscheAnzahl = useMemo(
+    () => fragen.reduce((n, f) => (wrongIds.has(f.frage) ? n + 1 : n), 0),
+    [fragen, wrongIds],
+  )
+
+  const aktiveFragen = useMemo(() => {
+    if (filter === 'falsche') return fragen.filter(f => wrongIds.has(f.frage))
+    if (filter === 'alle') return fragen
+    return fragen.filter(f => gruppeVon(f) === filter)
+    // wrongIds bewusst nur für den "falsche"-Filter relevant; Snapshot reicht.
+  }, [fragen, filter, wrongIds])
+
+  return (
+    <div>
+      <div className="section-header">
+        <h2>Quiz</h2>
+        <p>Teste dein Wissen mit {fragen.length} Fragen – optional pro Übungsblatt oder nur deine falschen.</p>
+      </div>
+
+      <div className="filter-row">
+        <button
+          type="button"
+          className={`filter-btn${filter === 'alle' ? ' on' : ''}`}
+          onClick={() => setFilter('alle')}
+        >
+          Alle ({fragen.length})
+        </button>
+        {gruppen.length > 1 &&
+          gruppen.map(g => (
+            <button
+              type="button"
+              key={g}
+              className={`filter-btn${filter === g ? ' on' : ''}`}
+              onClick={() => setFilter(g)}
+            >
+              {g}
+            </button>
+          ))}
+        {falscheAnzahl > 0 && (
+          <button
+            type="button"
+            className={`filter-btn${filter === 'falsche' ? ' on' : ''}`}
+            onClick={() => setFilter('falsche')}
+          >
+            🔁 Nur falsche ({falscheAnzahl})
+          </button>
+        )}
+      </div>
+
+      <QuizRun key={filter} fragen={aktiveFragen} onAnswer={markAnswer} />
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Spielt eine feste Fragenmenge durch (Reihenfolge + Optionen gemischt).
+// ---------------------------------------------------------------------------
+function QuizRun({
+  fragen,
+  onAnswer,
+}: {
+  fragen: QuizFrage[]
+  onAnswer: (id: string, correct: boolean) => void
+}) {
   const { streak, today, yesterday, recordCorrect } = useQuizProgress()
+  // Fragenmenge beim Mount einfrieren – spätere Prop-Änderungen (z.B. wenn der
+  // "falsche"-Zähler schrumpft) sollen den laufenden Durchgang nicht stören.
+  const runFragen = useRef(fragen).current
   const [qi, setQi] = useState(0)
   const [score, setScore] = useState(0)
   const [phase, setPhase] = useState<Phase>('playing')
-  const [order, setOrder] = useState<number[]>(() => shuffleIndices(fragen.length))
+  const [order, setOrder] = useState<number[]>(() => shuffleIndices(runFragen.length))
 
-  const total = fragen.length
-  const q = fragen[order[qi]]
-  const progress = total > 0 ? Math.round((qi / total) * 100) : 0
+  const total = runFragen.length
+  const q = runFragen[order[qi]]
 
-  const handleDone = useCallback((correct: boolean) => {
-    setPhase('answered')
-    if (correct) {
-      setScore(s => s + 1)
-      recordCorrect()
-    }
-  }, [recordCorrect])
+  const handleDone = useCallback(
+    (correct: boolean) => {
+      setPhase('answered')
+      onAnswer(q.frage, correct)
+      if (correct) {
+        setScore(s => s + 1)
+        recordCorrect()
+      }
+    },
+    [recordCorrect, onAnswer, q],
+  )
 
   const handleNext = useCallback(() => {
     if (qi + 1 >= total) {
@@ -50,25 +143,17 @@ export function Quiz({ fragen }: { fragen: QuizFrage[] }) {
     setQi(0)
     setScore(0)
     setPhase('playing')
-    setOrder(shuffleIndices(fragen.length))
-  }, [fragen])
+    setOrder(shuffleIndices(runFragen.length))
+  }, [runFragen])
 
   // Enter springt zur nächsten Frage, sobald beantwortet (Zifferntasten 1–n
   // wählen Optionen in Single/Mehrfachauswahl).
   useEnterKey(handleNext, phase === 'answered')
 
-  const header = (
-    <div className="section-header">
-      <h2>Quiz</h2>
-      <p>Teste dein Wissen mit {total} Fragen in verschiedenen Aufgabentypen.</p>
-    </div>
-  )
-
   if (total === 0 || !q) {
     return (
-      <div>
-        {header}
-        <div className="card"><p className="quiz-hint">Noch keine Quizfragen vorhanden.</p></div>
+      <div className="card">
+        <p className="quiz-hint">Keine Fragen in dieser Auswahl. 🎉</p>
       </div>
     )
   }
@@ -83,7 +168,6 @@ export function Quiz({ fragen }: { fragen: QuizFrage[] }) {
         : 'Schau nochmal in die Aufgaben und Lösungen!'
     return (
       <div>
-        {header}
         <ProgressBadges streak={streak} today={today} yesterday={yesterday} />
         <div className="card">
           <div className="progress-wrap"><div className="progress-bar progress-bar--full" /></div>
@@ -98,10 +182,10 @@ export function Quiz({ fragen }: { fragen: QuizFrage[] }) {
   }
 
   const answered = phase === 'answered'
+  const progress = total > 0 ? Math.round((qi / total) * 100) : 0
 
   return (
     <div>
-      {header}
       <ProgressBadges streak={streak} today={today} yesterday={yesterday} />
       <div className="card">
         <div className="progress-wrap">
