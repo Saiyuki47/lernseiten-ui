@@ -53,10 +53,10 @@ export function getHashDetail(): { tab: string; blatt?: string; aufgabe?: string
 
 // Schreibt Blatt/Aufgabe in den Hash und behält den Tab (erstes Segment).
 // history.replaceState → kein neuer History-Eintrag, kein hashchange-Event.
-export function setHashDetail(blatt?: string, aufgabe?: string): void {
+export function setHashDetail(blatt?: string, aufgabe?: string, tab?: string): void {
   if (typeof window === 'undefined') return
-  const tab = rawHash().split('/')[0] || ''
-  const parts = [tab]
+  const t = tab || seg(0) || 'uebung'
+  const parts = [encodeURIComponent(t)]
   if (blatt) {
     parts.push(encodeURIComponent(blatt))
     if (aufgabe) parts.push(encodeURIComponent(aufgabe))
@@ -69,7 +69,7 @@ export function setHashDetail(blatt?: string, aufgabe?: string): void {
 // Aufgabe und schreibt laufend die oben sichtbare Aufgabe in den Hash.
 // `blattId` = aktuell gewähltes Blatt. Rückgabe: ref für den Aufgaben-Container;
 // jede Aufgaben-Karte braucht das Attribut `data-aufgabe="<nr>"`.
-export function useTaskDeepLink<E extends HTMLElement = HTMLDivElement>(blattId: string) {
+export function useTaskDeepLink<E extends HTMLElement = HTMLDivElement>(blattId: string, tab = 'uebung') {
   const ref = useRef<E>(null)
 
   // Nur beim ersten Mount: zur in der URL genannten Aufgabe springen.
@@ -102,13 +102,13 @@ export function useTaskDeepLink<E extends HTMLElement = HTMLDivElement>(blattId:
       const nr = chosen?.dataset.aufgabe
       if (nr && nr !== last) {
         last = nr
-        setHashDetail(blattId, nr)
+        setHashDetail(blattId, nr, tab)
       }
     }
     const io = new IntersectionObserver(update, { threshold: [0, 1] })
     cards.forEach(c => io.observe(c))
     return () => io.disconnect()
-  }, [blattId])
+  }, [blattId, tab])
 
   return ref
 }
