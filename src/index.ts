@@ -12,6 +12,8 @@ export { LERNSEITEN } from './siteList'
 export type { LernSeite } from './siteList'
 export { Moodle } from './Moodle'
 export type { DateiFile, DateiFolder, DateiTyp } from './Moodle'
+export { Referenz } from './Referenz'
+export type { ReferenzKarte, ReferenzBeispiel } from './Referenz'
 export type {
   QuizFrage,
   QuizOption,
