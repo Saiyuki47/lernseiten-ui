@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, type CSSProperties } from 'react'
+import { useState, useCallback, useEffect, type CSSProperties, type ReactNode } from 'react'
 import { useNumberKeys, useEnterKey } from './useNumberKeys'
 
 // Eine Karteikarte – Inhalt kommt aus der jeweiligen Lernseite (front/back als Text).
@@ -66,10 +66,12 @@ const cardId = (c: FlashCard): string => c.id ?? c.front
 function buildQueue(cards: FlashCard[], store: Sm2Store, all: boolean): string[] {
   if (all) return cards.map(cardId)
   const t = todayDay()
-  return cards.filter(c => {
+  const due: string[] = []
+  for (const c of cards) {
     const s = store[cardId(c)]
-    return !s || s.due <= t
-  }).map(cardId)
+    if (!s || s.due <= t) due.push(cardId(c))
+  }
+  return due
 }
 
 const RATINGS: { q: number; label: string }[] = [
@@ -91,15 +93,36 @@ const faceStyle: CSSProperties = {
   whiteSpace: 'pre-wrap',
 }
 
+// Statischer Kopf außerhalb der Komponente, damit er nicht bei jedem Render neu
+// erzeugt wird (rendering-hoist-jsx).
+const HEADER = (
+  <div className="section-header">
+    <h2>Karteikarten</h2>
+    <p>Spaced Repetition: bewerte ehrlich, wie gut du es wusstest – fällige Karten kommen wieder.</p>
+  </div>
+)
+
 // ---------------------------------------------------------------------------
 // Karteikarten mit Spaced Repetition (SM-2). Fortschritt pro Lernseite in
 // localStorage. Tastatur: Enter/Leertaste deckt auf, 1–4 bewertet.
 // ---------------------------------------------------------------------------
-export function Flashcards({ cards }: { cards: FlashCard[] }) {
-  const storeRef = useRef<Sm2Store>(readStore())
-  const [queue, setQueue] = useState<string[]>(() => buildQueue(cards, storeRef.current, false))
+export function Flashcards({
+  cards,
+  render,
+}: {
+  cards: FlashCard[]
+  /** Optionaler Renderer für front/back (z.B. der Aufgaben-Renderer der App,
+   *  damit Brüche/Mathe/Markdown wie in den Übungsblättern erscheinen). */
+  render?: (text: string) => ReactNode
+}) {
+  const [store, setStore] = useState<Sm2Store>(readStore)
+  const [queue, setQueue] = useState<string[]>(() => buildQueue(cards, store, false))
   const [pos, setPos] = useState(0)
   const [revealed, setRevealed] = useState(false)
+
+  useEffect(() => {
+    writeStore(store)
+  }, [store])
 
   const reveal = useCallback(() => setRevealed(true), [])
 
@@ -107,8 +130,7 @@ export function Flashcards({ cards }: { cards: FlashCard[] }) {
     (q: number) => {
       const id = queue[pos]
       if (id === undefined) return
-      storeRef.current = { ...storeRef.current, [id]: sm2(storeRef.current[id], q) }
-      writeStore(storeRef.current)
+      setStore(prev => ({ ...prev, [id]: sm2(prev[id], q) }))
       setRevealed(false)
       setPos(p => p + 1)
     },
@@ -117,27 +139,20 @@ export function Flashcards({ cards }: { cards: FlashCard[] }) {
 
   const restart = useCallback(
     (all: boolean) => {
-      setQueue(buildQueue(cards, storeRef.current, all))
+      setQueue(buildQueue(cards, store, all))
       setPos(0)
       setRevealed(false)
     },
-    [cards],
+    [cards, store],
   )
 
   useEnterKey(reveal, !revealed && pos < queue.length)
   useNumberKeys(RATINGS.length, i => rate(RATINGS[i].q), revealed)
 
-  const header = (
-    <div className="section-header">
-      <h2>Karteikarten</h2>
-      <p>Spaced Repetition: bewerte ehrlich, wie gut du es wusstest – fällige Karten kommen wieder.</p>
-    </div>
-  )
-
   if (cards.length === 0) {
     return (
       <div>
-        {header}
+        {HEADER}
         <div className="card"><p className="quiz-hint">Noch keine Karteikarten vorhanden.</p></div>
       </div>
     )
@@ -145,10 +160,10 @@ export function Flashcards({ cards }: { cards: FlashCard[] }) {
 
   const fertig = pos >= queue.length
   if (fertig) {
-    const faelligJetzt = buildQueue(cards, storeRef.current, false).length
+    const faelligJetzt = buildQueue(cards, store, false).length
     return (
       <div>
-        {header}
+        {HEADER}
         <div className="card">
           <div className="result-box">
             <div className="result-score">✓</div>
@@ -172,7 +187,7 @@ export function Flashcards({ cards }: { cards: FlashCard[] }) {
   if (!card) {
     return (
       <div>
-        {header}
+        {HEADER}
         <div className="card"><p className="quiz-hint">Karte nicht gefunden.</p></div>
       </div>
     )
@@ -182,14 +197,14 @@ export function Flashcards({ cards }: { cards: FlashCard[] }) {
 
   return (
     <div>
-      {header}
+      {HEADER}
       <div className="card">
         <div className="progress-wrap">
           <div className="progress-bar" style={{ '--bar-w': `${progress}%` } as CSSProperties} />
         </div>
         <p className="quiz-num">Karte {pos + 1} / {queue.length}{card.tag ? ` · ${card.tag}` : ''}</p>
 
-        <div style={faceStyle}>{card.front}</div>
+        <div style={faceStyle}>{render ? render(card.front) : card.front}</div>
 
         {!revealed ? (
           <button type="button" className="nav-btn" style={{ width: '100%' }} onClick={reveal}>
@@ -198,7 +213,7 @@ export function Flashcards({ cards }: { cards: FlashCard[] }) {
         ) : (
           <>
             <hr style={{ border: 'none', borderTop: '1px solid var(--border, rgba(128,128,128,0.25))', margin: '0.25rem 0 0.75rem' }} />
-            <div style={{ ...faceStyle, minHeight: '5rem', fontWeight: 500 }}>{card.back}</div>
+            <div style={{ ...faceStyle, minHeight: '5rem', fontWeight: 500 }}>{render ? render(card.back) : card.back}</div>
             <div className="filter-row">
               {RATINGS.map((r, i) => (
                 <button type="button" key={r.q} className="filter-btn" onClick={() => rate(r.q)}>

@@ -106,18 +106,16 @@ export function GlobalSearch({
     const q = query.trim().toLowerCase()
     if (!q) return index.slice(0, 8)
     const terms = q.split(/\s+/)
-    return index
-      .map(it => {
-        const hay = `${it.label} ${it.snippet ?? ''} ${it.keywords ?? ''} ${it.tab}`.toLowerCase()
-        const score = terms.every(t => hay.includes(t))
-          ? terms.reduce((s, t) => s + (it.label.toLowerCase().includes(t) ? 2 : 1), 0)
-          : 0
-        return { it, score }
-      })
-      .filter(r => r.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 12)
-      .map(r => r.it)
+    const scored: { it: SearchItem; score: number }[] = []
+    for (const it of index) {
+      const hay = `${it.label} ${it.snippet ?? ''} ${it.keywords ?? ''} ${it.tab}`.toLowerCase()
+      // eslint-disable-next-line react-doctor/js-set-map-lookups -- hay ist ein String; .includes ist Substring-Suche, kein Array-Membership (nicht durch ein Set ersetzbar)
+      if (!terms.every(t => hay.includes(t))) continue
+      const score = terms.reduce((s, t) => s + (it.label.toLowerCase().includes(t) ? 2 : 1), 0)
+      scored.push({ it, score })
+    }
+    scored.sort((a, b) => b.score - a.score)
+    return scored.slice(0, 12).map(r => r.it)
   }, [query, index])
 
   const go = (it: SearchItem) => {
@@ -150,6 +148,7 @@ export function GlobalSearch({
             <input
               ref={inputRef}
               style={inputStyle}
+              aria-label="Suchbegriff"
               placeholder="Suchen… (Thema, Aufgabe, Formel)"
               value={query}
               onChange={e => {

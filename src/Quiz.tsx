@@ -34,12 +34,16 @@ export function Quiz({ fragen }: { fragen: QuizFrage[] }) {
 
   // Distinkte Übungsblatt-Gruppen in Datenreihenfolge.
   const gruppen = useMemo(() => {
-    const seen: string[] = []
+    const gesehen = new Set<string>()
+    const reihenfolge: string[] = []
     for (const f of fragen) {
       const g = gruppeVon(f)
-      if (!seen.includes(g)) seen.push(g)
+      if (!gesehen.has(g)) {
+        gesehen.add(g)
+        reihenfolge.push(g)
+      }
     }
-    return seen
+    return reihenfolge
   }, [fragen])
 
   const falscheAnzahl = useMemo(

@@ -7,6 +7,9 @@ export { Flashcards } from './Flashcards'
 export type { FlashCard } from './Flashcards'
 export { GlobalSearch } from './GlobalSearch'
 export type { SearchItem } from './GlobalSearch'
+export { SiteNav } from './SiteNav'
+export { LERNSEITEN } from './siteList'
+export type { LernSeite } from './siteList'
 export type {
   QuizFrage,
   QuizOption,

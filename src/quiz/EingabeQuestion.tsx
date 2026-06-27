@@ -33,7 +33,7 @@ export function EingabeQuestion({ q, onDone }: { q: QuizEingabe; onDone: (correc
   return (
     <>
       <p className="quiz-hint">{q.toleranz !== undefined ? 'Zahl eingeben.' : 'Antwort eintippen.'}</p>
-      <form className="eingabe-form" onSubmit={e => { e.preventDefault(); check() }}>
+      <div className="eingabe-form">
         <input
           className="eingabe-input"
           type="text"
@@ -42,11 +42,12 @@ export function EingabeQuestion({ q, onDone }: { q: QuizEingabe; onDone: (correc
           placeholder={q.platzhalter ?? 'Deine Antwort…'}
           aria-label="Antwort"
           onChange={e => setValue(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') check() }}
         />
         {!revealed && (
-          <button type="submit" className="nav-btn quiz-check-btn" disabled={value.trim() === ''}>Prüfen</button>
+          <button type="button" className="nav-btn quiz-check-btn" disabled={value.trim() === ''} onClick={check}>Prüfen</button>
         )}
-      </form>
+      </div>
       {revealed && (
         <div className={`quiz-feedback-box ${richtig ? 'is-correct' : 'is-wrong'}`}>
           <p className="quiz-feedback-head">{richtig ? '✓ Richtig!' : '✗ Leider falsch'}</p>
