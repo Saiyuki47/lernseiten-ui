@@ -10,6 +10,7 @@ import { KategorienQuestion } from './quiz/KategorienQuestion'
 import { EingabeQuestion } from './quiz/EingabeQuestion'
 import { WahrFalschQuestion } from './quiz/WahrFalschQuestion'
 import { shuffleIndices } from './quiz/shuffle'
+import { useEnterKey } from './useNumberKeys'
 
 // ---------------------------------------------------------------------------
 // Quiz-Hauptkomponente. Die Fragen kommen als Prop (`fragen`), damit die Engine
@@ -51,6 +52,10 @@ export function Quiz({ fragen }: { fragen: QuizFrage[] }) {
     setPhase('playing')
     setOrder(shuffleIndices(fragen.length))
   }, [fragen])
+
+  // Enter springt zur nächsten Frage, sobald beantwortet (Zifferntasten 1–n
+  // wählen Optionen in Single/Mehrfachauswahl).
+  useEnterKey(handleNext, phase === 'answered')
 
   const header = (
     <div className="section-header">

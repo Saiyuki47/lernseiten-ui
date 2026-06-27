@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import type { QuizMulti } from '../types'
 import { shuffleIndices } from './shuffle'
+import { useNumberKeys, useEnterKey } from '../useNumberKeys'
 
 function MultiFeedback({ q, sel }: { q: QuizMulti; sel: Set<number> }) {
   const correctSet = new Set(q.richtige)
@@ -52,6 +53,9 @@ export function MultiQuestion({ q, onDone }: { q: QuizMulti; onDone: (correct: b
     setRevealed(true)
     onDone(sel.size === correctSet.size && [...sel].every(i => correctSet.has(i)))
   }
+
+  useNumberKeys(perm.length, di => toggle(perm[di]), !revealed)
+  useEnterKey(check, !revealed && sel.size > 0)
 
   return (
     <>

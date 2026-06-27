@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { QuizSingle } from '../types'
 import { shuffleIndices } from './shuffle'
+import { useNumberKeys } from '../useNumberKeys'
 
 function SingleFeedback({ q, picked }: { q: QuizSingle; picked: number }) {
   const correct = picked === q.richtige
@@ -32,6 +33,8 @@ export function SingleQuestion({ q, onDone }: { q: QuizSingle; onDone: (correct:
     setPicked(i)
     onDone(i === q.richtige)
   }
+
+  useNumberKeys(perm.length, di => pick(perm[di]), !revealed)
 
   return (
     <>
