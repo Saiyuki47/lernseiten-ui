@@ -91,11 +91,15 @@ export function useTaskDeepLink<E extends HTMLElement = HTMLDivElement>(blattId:
     if (cards.length === 0) return
     let last = ''
     const update = () => {
-      const top = cards.find(c => {
-        const r = c.getBoundingClientRect()
-        return r.bottom > 0 && r.top < window.innerHeight * 0.25
-      })
-      const nr = top?.dataset.aufgabe
+      // unterste Karte, deren Oberkante bereits über der 30%-Linie liegt
+      // (= die, zu der gescrollt wurde); vor dem Scrollen die erste Karte.
+      let chosen = cards[0]
+      const line = window.innerHeight * 0.3
+      for (const c of cards) {
+        if (c.getBoundingClientRect().top <= line) chosen = c
+        else break
+      }
+      const nr = chosen?.dataset.aufgabe
       if (nr && nr !== last) {
         last = nr
         setHashDetail(blattId, nr)
