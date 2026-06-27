@@ -19,6 +19,8 @@ interface QuizBasis {
   gruppe?: string
   /** Optionale Seitenzahl der Quelle (z.B. PDF-Seite). */
   seite?: number
+  /** Optionale zweite Quellen-Angabe (Freitext), z.B. "Folien vom Lehrer, Seite 12". */
+  zusatzQuelle?: string
   /** Optionale (nachgebaute) Abbildung – wird in der Lösung nach dem Beantworten gezeigt. */
   bild?: ReactNode
   /** Zusatzfrage (z.B. Leons Unterlagen): im "Alle"-Modus per Schalter ausblendbar. */

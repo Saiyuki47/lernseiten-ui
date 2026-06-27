@@ -244,14 +244,22 @@ function QuizRun({
 
         {answered && q.bild && <div className="quiz-bild" style={{ marginTop: '0.75rem' }}>{q.bild}</div>}
 
-        {q.quelle && (
-          <p
-            className="quiz-quelle"
-            style={{ fontSize: '0.78rem', color: 'var(--text2, inherit)', opacity: 0.85, margin: '0.75rem 0 0' }}
-          >
-            📄 {quelleText(q)}
-          </p>
-        )}
+        {[q.quelle ? quelleText(q) : null, q.zusatzQuelle ?? null]
+          .filter((r): r is string => Boolean(r))
+          .map((r, i) => (
+            <p
+              key={r}
+              className="quiz-quelle"
+              style={{
+                fontSize: '0.78rem',
+                color: 'var(--text2, inherit)',
+                opacity: 0.85,
+                margin: `${i === 0 ? '0.75rem' : '0.2rem'} 0 0`,
+              }}
+            >
+              📄 {r}
+            </p>
+          ))}
 
         <div className="quiz-nav">
           <span className="score-pill">{score} / {qi + (answered ? 1 : 0)} richtig</span>
