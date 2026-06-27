@@ -91,10 +91,10 @@ export function useTaskDeepLink<E extends HTMLElement = HTMLDivElement>(blattId:
     if (cards.length === 0) return
     let last = ''
     const update = () => {
-      // unterste Karte, deren Oberkante bereits über der 30%-Linie liegt
-      // (= die, zu der gescrollt wurde); vor dem Scrollen die erste Karte.
+      // unterste Karte, deren Oberkante schon (fast) am oberen Rand anliegt
+      // (= die oben sichtbare); vor dem Scrollen die erste Karte.
       let chosen = cards[0]
-      const line = window.innerHeight * 0.3
+      const line = 24
       for (const c of cards) {
         if (c.getBoundingClientRect().top <= line) chosen = c
         else break
