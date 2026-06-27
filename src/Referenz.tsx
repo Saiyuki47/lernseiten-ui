@@ -79,14 +79,23 @@ export function Referenz({
   }, [])
 
   // Deep-Link: beim Laden / bei Hash-Änderung zum genannten Thema scrollen.
+  // KaTeX/Fonts rendern asynchron und verschieben das Layout, daher mehrfach
+  // nachscrollen, bis die Karte sicher oben steht.
   useEffect(() => {
     const scrollToHash = () => {
       const d = getHashDetail()
       if (d.tab !== tab || !d.blatt) return
-      const el = document.getElementById(cardDomId(d.blatt))
-      if (el) {
-        requestAnimationFrame(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }))
-        setActiveId(d.blatt)
+      const id = cardDomId(d.blatt)
+      const doScroll = () => {
+        const el = document.getElementById(id)
+        if (el) el.scrollIntoView({ block: 'start' })
+      }
+      setActiveId(d.blatt)
+      requestAnimationFrame(doScroll)
+      setTimeout(doScroll, 200)
+      setTimeout(doScroll, 500)
+      if (typeof document !== 'undefined' && document.fonts?.ready) {
+        document.fonts.ready.then(() => setTimeout(doScroll, 50))
       }
     }
     scrollToHash()
