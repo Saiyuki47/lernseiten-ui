@@ -65,6 +65,39 @@ function Rendered({ fn, text }: { fn: (t: string) => ReactNode; text: string }) 
 // Standard-Renderer, wenn die App keinen `render` übergibt (reiner Text).
 const identity = (t: string): ReactNode => t
 
+// Rendert den (schweren) Karten-Inhalt erst, wenn die Karte in die Nähe des
+// Sichtfensters kommt (Lazy-Mount via IntersectionObserver). So blockiert beim
+// Öffnen des Tabs nicht das gesamte KaTeX/Markup auf einmal – sichtbare Karten
+// sind sofort da, der Rest lädt beim Scrollen nach. Einmal gerendert bleibt es.
+function LazyBody({ children, eager, minHeight = 220 }: { children: ReactNode; eager?: boolean; minHeight?: number }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [shown, setShown] = useState(!!eager)
+  useEffect(() => {
+    if (shown) return
+    const el = ref.current
+    if (!el || typeof IntersectionObserver === 'undefined') {
+      setShown(true)
+      return
+    }
+    const io = new IntersectionObserver(
+      entries => {
+        if (entries.some(e => e.isIntersecting)) {
+          setShown(true)
+          io.disconnect()
+        }
+      },
+      { rootMargin: '800px 0px' },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [shown])
+  return (
+    <div ref={ref} style={shown ? undefined : { minHeight }}>
+      {shown ? children : null}
+    </div>
+  )
+}
+
 export function Referenz({
   karten,
   render,
@@ -75,6 +108,9 @@ export function Referenz({
   const renderText = render ?? identity
   const renderTitle = renderInline ?? render ?? identity
   const [activeId, setActiveId] = useState<string>(() => karten[0]?.id ?? '')
+  // Deep-Link-Ziel beim ersten Laden: diese Karte sofort (eager) rendern.
+  const [initialHash] = useState(() => getHashDetail())
+  const eagerTarget = initialHash.tab === tab ? initialHash.blatt : undefined
   const contentRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -155,7 +191,7 @@ export function Referenz({
           </ul>
         </nav>
         <div className="lsref-content" ref={contentRef}>
-          {karten.map(karte => (
+          {karten.map((karte, i) => (
             <article
               key={karte.id}
               id={cardDomId(karte.id)}
@@ -163,33 +199,35 @@ export function Referenz({
               className="lsref-card"
             >
               <h3>{karte.titelNode ?? <Rendered fn={renderTitle} text={karte.titel} />}</h3>
-              <div className="lsref-text">
-                {karte.inhaltNode ?? <Rendered fn={renderText} text={karte.inhalt ?? ''} />}
-              </div>
-              {karte.beispiele?.map(gruppe => (
-                <details className="lsref-bsp" key={gruppe.szenario}>
-                  <summary>
-                    Beispiele: {gruppe.szenario}{' '}
-                    <span className="lsref-bsp-n">({gruppe.beispiele.length})</span>
-                  </summary>
-                  <ol className="lsref-bsp-list">
-                    {gruppe.beispiele.map(bsp => (
-                      <li key={bsp}><Rendered fn={renderText} text={bsp} /></li>
-                    ))}
-                  </ol>
-                </details>
-              ))}
-              {karte.beispieleNode?.map(gruppe => (
-                <details className="lsref-bsp" key={gruppe.szenario}>
-                  <summary>
-                    Beispiele: {gruppe.szenario}{' '}
-                    <span className="lsref-bsp-n">({gruppe.beispiele.length})</span>
-                  </summary>
-                  <ol className="lsref-bsp-list">
-                    {Children.toArray(gruppe.beispiele.map(bsp => <li>{bsp}</li>))}
-                  </ol>
-                </details>
-              ))}
+              <LazyBody eager={i === 0 || karte.id === eagerTarget}>
+                <div className="lsref-text">
+                  {karte.inhaltNode ?? <Rendered fn={renderText} text={karte.inhalt ?? ''} />}
+                </div>
+                {karte.beispiele?.map(gruppe => (
+                  <details className="lsref-bsp" key={gruppe.szenario}>
+                    <summary>
+                      Beispiele: {gruppe.szenario}{' '}
+                      <span className="lsref-bsp-n">({gruppe.beispiele.length})</span>
+                    </summary>
+                    <ol className="lsref-bsp-list">
+                      {gruppe.beispiele.map(bsp => (
+                        <li key={bsp}><Rendered fn={renderText} text={bsp} /></li>
+                      ))}
+                    </ol>
+                  </details>
+                ))}
+                {karte.beispieleNode?.map(gruppe => (
+                  <details className="lsref-bsp" key={gruppe.szenario}>
+                    <summary>
+                      Beispiele: {gruppe.szenario}{' '}
+                      <span className="lsref-bsp-n">({gruppe.beispiele.length})</span>
+                    </summary>
+                    <ol className="lsref-bsp-list">
+                      {Children.toArray(gruppe.beispiele.map(bsp => <li>{bsp}</li>))}
+                    </ol>
+                  </details>
+                ))}
+              </LazyBody>
             </article>
           ))}
         </div>
