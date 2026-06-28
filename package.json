@@ -3,12 +3,13 @@
   "version": "0.1.0",
   "description": "Geteilte UI-Engine (Quiz, Theme) für die Lernseiten",
   "type": "module",
-  "files": ["dist"],
+  "files": ["dist", "styles.css"],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    }
+    },
+    "./styles.css": "./styles.css"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",

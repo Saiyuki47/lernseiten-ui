@@ -1,0 +1,189 @@
+/* ============================================================================
+   Geteilte Basis-Styles aller Lernseiten (lernseiten-ui).
+   Reset, Theme-Variablen (Hell/Dunkel), Grundlayout, Header, Tabs, Karten,
+   Badges, Section-Header, Toggle-Buttons. Import VOR der app-eigenen index.css:
+     import 'lernseiten-ui/styles.css'
+     import './index.css'
+   App-spezifisches (Quiz-Detailstile, Schema, Drucken, …) bleibt in index.css.
+   ============================================================================ */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0f1117;
+  --bg2: #171b27;
+  --bg3: #1e2235;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --text: #e8eaf0;
+  --text2: #8b90a8;
+  --text3: #555a72;
+  --blue: #4d9fff;
+  --blue-dim: rgba(77,159,255,0.12);
+  --green: #3ecf8e;
+  --green-dim: rgba(62,207,142,0.12);
+  --amber: #f5a623;
+  --amber-dim: rgba(245,166,35,0.12);
+  --red: #f16063;
+  --red-dim: rgba(241,96,99,0.12);
+  --font-sans: 'Sora', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --radius: 10px;
+  --radius-lg: 14px;
+}
+
+[data-theme="light"] {
+  --bg: #f5f6fa;
+  --bg2: #ffffff;
+  --bg3: #eaecf4;
+  --border: rgba(0,0,0,0.08);
+  --border2: rgba(0,0,0,0.14);
+  --text: #1a1d2e;
+  --text2: #5a5f7a;
+  --text3: #9096b0;
+  --blue: #1a6fd4;
+  --blue-dim: rgba(26,111,212,0.10);
+  --green: #1a9e63;
+  --green-dim: rgba(26,158,99,0.10);
+  --amber: #c97d08;
+  --amber-dim: rgba(201,125,8,0.10);
+  --red: #d63638;
+  --red-dim: rgba(214,54,56,0.10);
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* HEADER */
+header {
+  border-bottom: 1px solid var(--border);
+  padding: 1.25rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--bg2);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+header > :first-child { flex: 1; }
+.theme-toggle {
+  background: none;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  color: var(--text2);
+  transition: background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+.theme-toggle:hover { background: var(--bg3); border-color: var(--border2); }
+.logo {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+.logo span { color: var(--blue); }
+.subtitle { font-size: 13px; color: var(--text3); font-family: var(--font-mono); }
+
+/* LAYOUT */
+.container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+/* TABS */
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 2rem;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px;
+  flex-wrap: wrap;
+}
+.tab {
+  flex: 1;
+  min-width: 120px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.tab:hover { color: var(--text); background: var(--bg3); }
+.tab.active { background: var(--blue-dim); color: var(--blue); }
+
+/* SECTION HEADER */
+.section-header { margin-bottom: 1.5rem; }
+.section-header h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.section-header p { font-size: 14px; color: var(--text2); }
+
+/* CARD */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+  transition: border-color 0.2s;
+}
+.card:hover { border-color: var(--border2); }
+
+/* BADGES */
+.badge-row { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+.badge {
+  font-size: 11px;
+  font-weight: 500;
+  font-family: var(--font-mono);
+  padding: 2px 8px;
+  border-radius: 5px;
+  letter-spacing: 0.03em;
+}
+.badge-pv { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(77,159,255,0.25); }
+.badge-nw { background: var(--green-dim); color: var(--green); border: 1px solid rgba(62,207,142,0.25); }
+.badge-easy { background: var(--green-dim); color: var(--green); }
+.badge-med { background: var(--amber-dim); color: var(--amber); }
+.badge-hard { background: var(--red-dim); color: var(--red); }
+
+/* QUESTION */
+.q-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.q-text { font-size: 13px; color: var(--text2); margin-bottom: 14px; line-height: 1.7; }
+
+/* TOGGLE BUTTON */
+.toggle-btn {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  padding: 5px 12px;
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.toggle-btn:hover { background: var(--bg3); color: var(--text); }
+
