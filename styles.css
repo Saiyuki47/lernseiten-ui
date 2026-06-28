@@ -463,3 +463,20 @@ header > :first-child { flex: 1; }
 
 .quiz-feedback-list--ol { list-style: decimal; padding-left: 1.3em; }
 .quiz-feedback-list--ol li { font-family: var(--font-sans); }
+
+/* ============================================================================
+   HILFSMITTEL-Bedienleiste – das on-screen-Bedienteil ÜBER der Druckvorschau
+   (Mathe, Algebraische, BWL). Wird beim Drucken ausgeblendet; die Druckseiten
+   selbst bleiben unberührt.
+   ============================================================================ */
+.hilf-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem 1.25rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:1.25rem}
+.hilf-bar-text{min-width:12rem;flex:1 1 18rem}
+.hilf-bar-text h2{font-size:1.2rem;margin:0 0 .25rem;color:var(--text)}
+.hilf-bar-text p{margin:0;font-size:.85rem;line-height:1.5;color:var(--text2)}
+.hilf-bar-actions{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem}
+.hilf-bar-hint{font-size:.78rem;color:var(--text3);white-space:nowrap}
+.hilf-print-btn{display:inline-flex;align-items:center;gap:.5rem;background:var(--blue);color:#fff;border:1px solid transparent;padding:.55rem 1.1rem;border-radius:999px;font-size:.9rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:filter .15s}
+.hilf-print-btn:hover{filter:brightness(1.1)}
+.hilf-bar .filter-row{margin:0}
+@media print{.hilf-bar{display:none!important}}
+@media(max-width:620px){.hilf-bar{align-items:stretch}.hilf-bar-actions{width:100%}.hilf-print-btn{flex:1;justify-content:center}}
