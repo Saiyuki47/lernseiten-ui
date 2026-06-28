@@ -187,3 +187,279 @@ header > :first-child { flex: 1; }
 }
 .toggle-btn:hover { background: var(--bg3); color: var(--text); }
 
+
+/* ============================================================================
+   QUIZ-ENGINE (geteilt) – gehört zur <Quiz>-Komponente aus lernseiten-ui.
+   Haupt-Stile (Optionen/Prüfen) + Detail-Stile (Badges, Feedback, Drag&Drop:
+   Zuordnung/Reihenfolge/Kategorisieren/Eingabe/Wahr-Falsch). Über alle
+   Lernseiten byte-identisch; Apps haben diese Blöcke aus index.css entfernt.
+   ============================================================================ */
+
+/* QUIZ */
+.progress-wrap {
+  height: 3px;
+  background: var(--bg3);
+  border-radius: 2px;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+.progress-bar {
+  height: 3px;
+  background: var(--blue);
+  border-radius: 2px;
+  transition: width 0.4s ease;
+  width: var(--bar-w, 0%);
+}
+.progress-bar--full { --bar-w: 100%; }
+.quiz-q {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.7;
+  margin-bottom: 1.25rem;
+}
+.quiz-num { font-family: var(--font-mono); font-size: 12px; color: var(--text3); margin-bottom: 8px; }
+.options { display: flex; flex-direction: column; gap: 8px; }
+.opt-btn {
+  text-align: left;
+  padding: 10px 16px;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  background: var(--bg3);
+  color: var(--text);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.5;
+  transition: all 0.15s;
+}
+.opt-btn:hover:not(:disabled) { border-color: var(--blue); background: var(--blue-dim); }
+.opt-btn.correct { border-color: var(--green); background: var(--green-dim); color: var(--green); }
+.opt-btn.wrong { border-color: var(--red); background: var(--red-dim); color: var(--red); }
+.opt-btn:disabled { cursor: default; }
+.quiz-feedback {
+  font-size: 13px;
+  font-family: var(--font-sans);
+  margin-top: 14px;
+  color: var(--text2);
+  line-height: 1.7;
+  min-height: 20px;
+}
+.quiz-feedback--correct { color: var(--green); }
+.quiz-feedback--wrong { color: var(--red); }
+.quiz-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+}
+.score-pill { font-size: 13px; font-family: var(--font-mono); color: var(--text3); }
+.nav-btn {
+  padding: 8px 20px;
+  font-size: 13px;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  background: var(--bg3);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.nav-btn:hover:not(:disabled) { background: var(--blue-dim); border-color: var(--blue); color: var(--blue); }
+.nav-btn:disabled { opacity: 0.3; cursor: default; }
+
+.result-box { text-align: center; padding: 2rem 0; }
+.result-score { font-size: 48px; font-weight: 600; color: var(--blue); font-family: var(--font-mono); margin-bottom: 8px; }
+.result-label { font-size: 15px; color: var(--text2); margin-bottom: 1.5rem; }
+
+
+/* QUIZ – Fortschritts-Badges (Streak / heute / gestern) */
+.quiz-stats {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 1.25rem;
+}
+.quiz-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 6px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.quiz-stat-num { font-family: var(--font-mono); font-size: 18px; font-weight: 600; color: var(--text); }
+.quiz-stat-label { font-size: 11px; color: var(--text3); text-align: center; }
+
+/* QUIZ – Hinweistext, Mehrfachauswahl, Prüfen-Button */
+.quiz-hint { font-size: 12.5px; color: var(--text3); margin-bottom: 10px; }
+.opt-btn.selected { border-color: var(--blue); background: var(--blue-dim); color: var(--blue); }
+.opt-btn--check { display: flex; align-items: center; gap: 8px; }
+.opt-check { font-size: 15px; line-height: 1; }
+.quiz-check-btn { margin-top: 14px; }
+
+/* QUIZ – Feedback-Box (warum falsch + richtige Lösung) */
+.quiz-feedback-box {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  background: var(--bg2);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.quiz-feedback-box.is-correct { border-color: var(--green); background: var(--green-dim); }
+.quiz-feedback-box.is-wrong { border-color: var(--red); background: var(--red-dim); }
+.quiz-feedback-head { font-weight: 600; margin-bottom: 6px; }
+.is-correct .quiz-feedback-head { color: var(--green); }
+.is-wrong .quiz-feedback-head { color: var(--red); }
+.quiz-feedback-why { color: var(--text2); margin-bottom: 4px; }
+.quiz-feedback-correct { color: var(--text); font-weight: 500; margin-bottom: 4px; }
+.quiz-feedback-exp { color: var(--text2); margin-top: 6px; }
+.quiz-feedback-list { list-style: none; margin: 4px 0 6px; padding: 0; }
+.quiz-feedback-list li { font-family: var(--font-mono); font-size: 12.5px; color: var(--text2); padding: 1px 0; }
+.quiz-feedback-list strong { color: var(--text); }
+
+/* QUIZ – Zuordnung (Drag & Drop) */
+.zuordnung-pool {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 48px;
+  padding: 10px;
+  margin-bottom: 14px;
+  border: 1px dashed var(--border2);
+  border-radius: var(--radius);
+  background: var(--bg3);
+}
+.zuordnung-pool-empty { font-size: 12px; color: var(--text3); align-self: center; }
+.zuordnung-chip {
+  padding: 7px 12px;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  background: var(--bg2);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  cursor: grab;
+  transition: all 0.15s;
+}
+.zuordnung-chip:hover { border-color: var(--blue); }
+.zuordnung-chip.selected { border-color: var(--blue); background: var(--blue-dim); color: var(--blue); }
+.zuordnung-chip:active { cursor: grabbing; }
+.zuordnung-targets { display: flex; flex-direction: column; gap: 8px; }
+.zuordnung-slot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  background: var(--bg3);
+}
+.zuordnung-slot.correct { border-color: var(--green); background: var(--green-dim); }
+.zuordnung-slot.wrong { border-color: var(--red); background: var(--red-dim); }
+.zuordnung-slot-label { flex: 1; font-size: 13px; color: var(--text); }
+.zuordnung-slot-drop {
+  min-width: 110px;
+  padding: 7px 12px;
+  border: 1px dashed var(--border2);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text3);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.zuordnung-slot-drop.filled { border-style: solid; background: var(--bg2); color: var(--text); cursor: grab; }
+
+/* QUIZ – Reihenfolge / Sortieren */
+.reihenfolge-list { list-style: none; display: flex; flex-direction: column; gap: 8px; padding: 0; }
+.reihenfolge-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  background: var(--bg3);
+  cursor: grab;
+}
+.reihenfolge-item.correct { border-color: var(--green); background: var(--green-dim); }
+.reihenfolge-item.wrong { border-color: var(--red); background: var(--red-dim); }
+.reihenfolge-num {
+  flex-shrink: 0;
+  width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: var(--bg);
+  font-family: var(--font-mono); font-size: 12px; color: var(--text2);
+}
+.reihenfolge-text { flex: 1; font-size: 13px; color: var(--text); }
+.reihenfolge-arrows { display: flex; flex-direction: column; gap: 2px; }
+.reihenfolge-arrows button {
+  border: 1px solid var(--border2); background: var(--bg2); color: var(--text2);
+  border-radius: 6px; width: 24px; height: 18px; font-size: 10px; cursor: pointer; line-height: 1;
+}
+.reihenfolge-arrows button:disabled { opacity: 0.3; cursor: default; }
+
+/* QUIZ – Kategorisieren (Töpfe) */
+.kategorien-pool {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  min-height: 48px; padding: 10px; margin-bottom: 14px;
+  border: 1px dashed var(--border2); border-radius: var(--radius); background: var(--bg3);
+}
+.kategorien-buckets { display: flex; flex-wrap: wrap; gap: 10px; }
+.kategorien-bucket {
+  flex: 1; min-width: 160px;
+  padding: 10px; border: 1px solid var(--border2); border-radius: var(--radius); background: var(--bg3);
+}
+.kategorien-bucket-label {
+  display: block; width: 100%; text-align: left;
+  background: none; border: none; padding: 0 0 8px; cursor: pointer;
+  font-family: var(--font-sans); font-size: 12px; color: var(--text3);
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.kategorien-bucket-label:hover:not(:disabled) { color: var(--blue); }
+.kategorien-bucket-label:disabled { cursor: default; }
+.kategorien-bucket-items { display: flex; flex-wrap: wrap; gap: 6px; min-height: 32px; }
+
+/* QUIZ – Freie Eingabe */
+.eingabe-form { display: flex; gap: 10px; align-items: stretch; }
+.eingabe-input {
+  flex: 1; padding: 10px 14px;
+  border: 1px solid var(--border2); border-radius: var(--radius);
+  background: var(--bg3); color: var(--text);
+  font-family: var(--font-mono); font-size: 14px;
+}
+.eingabe-input:focus { outline: none; border-color: var(--blue); }
+.eingabe-input:disabled { opacity: 0.7; }
+.eingabe-form .quiz-check-btn { margin-top: 0; }
+
+/* QUIZ – Wahr/Falsch */
+.wf-list { display: flex; flex-direction: column; gap: 8px; }
+.wf-row {
+  padding: 10px 12px;
+  border: 1px solid var(--border2); border-radius: var(--radius); background: var(--bg3);
+}
+.wf-row.correct { border-color: var(--green); background: var(--green-dim); }
+.wf-row.wrong { border-color: var(--red); background: var(--red-dim); }
+.wf-line { display: flex; align-items: center; gap: 12px; }
+.wf-text { flex: 1; font-size: 13px; color: var(--text); }
+.wf-buttons { display: flex; gap: 6px; flex-shrink: 0; }
+.wf-btn {
+  padding: 5px 12px; border: 1px solid var(--border2); border-radius: var(--radius);
+  background: var(--bg2); color: var(--text2); font-size: 12px; cursor: pointer; transition: all 0.15s;
+}
+.wf-btn:hover:not(:disabled) { border-color: var(--blue); color: var(--blue); }
+.wf-btn.on { border-color: var(--blue); background: var(--blue-dim); color: var(--blue); }
+.wf-btn:disabled { cursor: default; }
+.wf-why { font-size: 12px; color: var(--text2); margin-top: 6px; }
+
+.quiz-feedback-list--ol { list-style: decimal; padding-left: 1.3em; }
+.quiz-feedback-list--ol li { font-family: var(--font-sans); }
