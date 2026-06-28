@@ -108,9 +108,12 @@ export function Referenz({
   const renderText = render ?? identity
   const renderTitle = renderInline ?? render ?? identity
   const [activeId, setActiveId] = useState<string>(() => karten[0]?.id ?? '')
-  // Deep-Link-Ziel beim ersten Laden: diese Karte sofort (eager) rendern.
+  // Deep-Link beim ersten Laden: alle Karten BIS EINSCHLIESSLICH Ziel sofort
+  // (eager) rendern, damit die Scrollposition stimmt (Karten darüber dürfen die
+  // Höhe nicht mehr nachträglich verschieben). Karten unter dem Ziel bleiben lazy.
   const [initialHash] = useState(() => getHashDetail())
   const eagerTarget = initialHash.tab === tab ? initialHash.blatt : undefined
+  const eagerIndex = eagerTarget ? karten.findIndex(k => k.id === eagerTarget) : -1
   const contentRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -199,7 +202,7 @@ export function Referenz({
               className="lsref-card"
             >
               <h3>{karte.titelNode ?? <Rendered fn={renderTitle} text={karte.titel} />}</h3>
-              <LazyBody eager={i === 0 || karte.id === eagerTarget}>
+              <LazyBody eager={i === 0 || (eagerIndex >= 0 && i <= eagerIndex)}>
                 <div className="lsref-text">
                   {karte.inhaltNode ?? <Rendered fn={renderText} text={karte.inhalt ?? ''} />}
                 </div>
