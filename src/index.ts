@@ -16,6 +16,8 @@ export { Moodle } from './Moodle'
 export type { DateiFile, DateiFolder, DateiTyp } from './Moodle'
 export { Referenz } from './Referenz'
 export type { ReferenzKarte, ReferenzBeispiel, ReferenzBeispielNode } from './Referenz'
+export { Tabs } from './Tabs'
+export type { TabDef } from './Tabs'
 export type {
   QuizFrage,
   QuizOption,
