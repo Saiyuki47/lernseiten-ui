@@ -488,3 +488,20 @@ header > :first-child { flex: 1; }
 .hilf-bar .filter-row{margin:0}
 @media print{.hilf-bar{display:none!important}}
 @media(max-width:620px){.hilf-bar{align-items:stretch}.hilf-bar-actions{width:100%}.hilf-print-btn{flex:1;justify-content:center}}
+
+/* ============================================================================
+   A11y: sichtbarer Tastatur-Fokus für alle interaktiven Steuerelemente.
+   (Maus-Klick zeigt dank :focus-visible keinen Rahmen.)
+   ============================================================================ */
+.tab:focus-visible,
+.toggle-btn:focus-visible,
+.filter-btn:focus-visible,
+.hilf-print-btn:focus-visible,
+.theme-toggle:focus-visible,
+.site-nav-btn:focus-visible,
+.lsref-nav a:focus-visible,
+.lsref-bsp>summary:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
