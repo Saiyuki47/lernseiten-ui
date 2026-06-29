@@ -70,17 +70,40 @@ const resultStyle = (active: boolean): CSSProperties => ({
 // Globale Suche: Trigger-Button + Overlay. Öffnet per Klick oder Strg/Cmd-K,
 // Pfeiltasten wählen, Enter springt zum Treffer-Tab, Esc schließt.
 // ---------------------------------------------------------------------------
+const EMPTY: SearchItem[] = []
+
 export function GlobalSearch({
   index,
+  loadIndex,
   onNavigate,
 }: {
-  index: SearchItem[]
+  /** Direkt bereitgestellter Index (eager). */
+  index?: SearchItem[]
+  /** Lazy-Loader: Index wird erst beim ersten Öffnen der Suche geladen, damit die
+   *  (großen) Suchdaten nicht im Initial-Bundle landen. Wird ignoriert, wenn `index` gesetzt ist. */
+  loadIndex?: () => Promise<SearchItem[]>
   onNavigate: (tab: string) => void
 }) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [sel, setSel] = useState(0)
+  const [lazyIndex, setLazyIndex] = useState<SearchItem[] | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // Index erst beim ersten Öffnen nachladen (nur wenn `loadIndex` statt `index`).
+  useEffect(() => {
+    if (!open || index || !loadIndex || lazyIndex !== null) return
+    let cancelled = false
+    loadIndex().then(items => {
+      if (!cancelled) setLazyIndex(items)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [open, index, loadIndex, lazyIndex])
+
+  const data = index ?? lazyIndex ?? EMPTY
+  const loading = !index && !!loadIndex && lazyIndex === null
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -104,10 +127,10 @@ export function GlobalSearch({
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return index.slice(0, 8)
+    if (!q) return data.slice(0, 8)
     const terms = q.split(/\s+/)
     const scored: { it: SearchItem; score: number }[] = []
-    for (const it of index) {
+    for (const it of data) {
       const hay = `${it.label} ${it.snippet ?? ''} ${it.keywords ?? ''} ${it.tab}`.toLowerCase()
       // eslint-disable-next-line react-doctor/js-set-map-lookups -- hay ist ein String; .includes ist Substring-Suche, kein Array-Membership (nicht durch ein Set ersetzbar)
       if (!terms.every(t => hay.includes(t))) continue
@@ -116,7 +139,7 @@ export function GlobalSearch({
     }
     scored.sort((a, b) => b.score - a.score)
     return scored.slice(0, 12).map(r => r.it)
-  }, [query, index])
+  }, [query, data])
 
   const go = (it: SearchItem) => {
     onNavigate(it.tab)
@@ -158,7 +181,9 @@ export function GlobalSearch({
               onKeyDown={onKeyDown}
             />
             <div style={{ maxHeight: '50vh', overflowY: 'auto', marginTop: 8 }}>
-              {results.length === 0 ? (
+              {loading ? (
+                <p style={{ opacity: 0.6, padding: 8 }}>Lädt …</p>
+              ) : results.length === 0 ? (
                 <p style={{ opacity: 0.6, padding: 8 }}>Keine Treffer.</p>
               ) : (
                 results.map((it, i) => (
