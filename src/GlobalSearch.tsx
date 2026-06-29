@@ -3,6 +3,7 @@ import {
   useEffect,
   useRef,
   useMemo,
+  useCallback,
   type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react'
@@ -90,31 +91,29 @@ export function GlobalSearch({
   const [lazyIndex, setLazyIndex] = useState<SearchItem[] | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Index erst beim ersten Öffnen nachladen (nur wenn `loadIndex` statt `index`).
-  useEffect(() => {
-    if (!open || index || !loadIndex || lazyIndex !== null) return
-    let cancelled = false
-    loadIndex().then(items => {
-      if (!cancelled) setLazyIndex(items)
-    })
-    return () => {
-      cancelled = true
-    }
-  }, [open, index, loadIndex, lazyIndex])
-
   const data = index ?? lazyIndex ?? EMPTY
   const loading = !index && !!loadIndex && lazyIndex === null
+
+  // Index einmalig laden (nur wenn `loadIndex` statt `index`) – ausgelöst beim
+  // Öffnen über die Handler, nicht reaktiv im Effect.
+  const loadStarted = useRef(false)
+  const ensureIndex = useCallback(() => {
+    if (index || !loadIndex || loadStarted.current) return
+    loadStarted.current = true
+    loadIndex().then(items => setLazyIndex(items))
+  }, [index, loadIndex])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault()
+        ensureIndex()
         setOpen(o => !o)
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [])
+  }, [ensureIndex])
 
   useEffect(() => {
     if (open) {
@@ -162,7 +161,7 @@ export function GlobalSearch({
 
   return (
     <>
-      <button type="button" className="filter-btn" onClick={() => setOpen(true)} aria-label="Suche öffnen">
+      <button type="button" className="filter-btn" onClick={() => { ensureIndex(); setOpen(true) }} aria-label="Suche öffnen">
         🔍 Suche
       </button>
       {open && (
