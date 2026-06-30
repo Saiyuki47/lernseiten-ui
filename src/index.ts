@@ -18,6 +18,8 @@ export { Referenz } from './Referenz'
 export type { ReferenzKarte, ReferenzBeispiel, ReferenzBeispielNode } from './Referenz'
 export { Tabs } from './Tabs'
 export type { TabDef } from './Tabs'
+export { OffeneAufgaben } from './OffeneAufgaben'
+export type { OffenItem } from './OffeneAufgaben'
 export type {
   QuizFrage,
   QuizOption,
