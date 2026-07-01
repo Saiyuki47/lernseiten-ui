@@ -203,6 +203,11 @@ export function Referenz({
             >
               <h3>{karte.titelNode ?? <Rendered fn={renderTitle} text={karte.titel} />}</h3>
               <LazyBody eager={i === 0 || (eagerIndex >= 0 && i <= eagerIndex)}>
+                {/* In ein Fragment kapseln, damit `children` ein einzelnes Element
+                    (kein Array) ist – sonst verlangt React beim Rendern von
+                    `{children}` in LazyBody Keys auf den Array-Elementen und warnt
+                    für den ungekeyten `.lsref-text`-Block (nur im Node-Pfad sichtbar). */}
+                <>
                 <div className="lsref-text">
                   {karte.inhaltNode ?? <Rendered fn={renderText} text={karte.inhalt ?? ''} />}
                 </div>
@@ -230,6 +235,7 @@ export function Referenz({
                     </ol>
                   </details>
                 ))}
+                </>
               </LazyBody>
             </article>
           ))}
