@@ -21,6 +21,18 @@ function KatexSpan({ tex }: { tex: string }) {
 // as a block subheading. Returns the inner text without the ** markers, or null.
 const SUBHEAD_RE = /^\*\*([^*]+)\*\*$/
 
+// `$…$` innerhalb eines Textstücks rendern (auch im Inneren von **fett** nötig,
+// damit z. B. "**gleichmächtig zu $\mathbb{N}$**" nicht als roher String endet).
+function parseMath(text: string, keyPrefix: string): React.ReactNode[] {
+  return text.split(/(\$[^$]+\$)/g).map((part, i) =>
+    part.startsWith('$') && part.endsWith('$') && part.length > 2 ? (
+      <KatexSpan key={`${keyPrefix}m${i}`} tex={part.slice(1, -1)} />
+    ) : (
+      <React.Fragment key={`${keyPrefix}t${i}`}>{part}</React.Fragment>
+    ),
+  )
+}
+
 function parseLine(line: string): React.ReactNode[] {
   const parts = line.split(/(\$[^$]+\$|\*\*[^*]+\*\*)/g)
   let m = 0, b = 0, t = 0
@@ -29,7 +41,7 @@ function parseLine(line: string): React.ReactNode[] {
       return <KatexSpan key={`m${m++}`} tex={part.slice(1, -1)} />
     }
     if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
-      return <strong key={`b${b++}`}>{part.slice(2, -2)}</strong>
+      return <strong key={`b${b++}`}>{parseMath(part.slice(2, -2), `b${b}`)}</strong>
     }
     return <span key={`t${t++}`}>{part}</span>
   })
