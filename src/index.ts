@@ -30,4 +30,6 @@ export type {
   QuizKategorien,
   QuizEingabe,
   QuizWahrFalsch,
+  QuizBeschriftung,
+  BeschriftungSlot,
 } from './types'

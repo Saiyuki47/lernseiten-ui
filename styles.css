@@ -393,6 +393,43 @@ a.logo:hover { opacity: 0.85; }
 }
 .zuordnung-slot-drop.filled { border-style: solid; background: var(--bg2); color: var(--text); cursor: grab; }
 
+/* QUIZ – Abbildung beschriften (Drop-Zonen als Overlay über dem SVG) */
+.beschriftung-stage {
+  position: relative;
+  width: 100%;
+  margin: 4px 0 12px;
+  container-type: inline-size;
+}
+.beschriftung-stage > svg { display: block; width: 100%; height: auto; max-width: none; }
+.beschriftung-slot {
+  position: absolute;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 16px;
+  padding: 0 2px;
+  border: 1.5px dashed var(--blue);
+  border-radius: 5px;
+  background: var(--blue-dim);
+  color: var(--text);
+  font-family: inherit;
+  font-weight: 600;
+  line-height: 1.1;
+  text-align: center;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.beschriftung-slot.awaiting { border-color: var(--green); }
+.beschriftung-slot.filled {
+  border-style: solid;
+  background: var(--bg2);
+  cursor: grab;
+}
+.beschriftung-slot.correct { border-color: var(--green); background: var(--green-dim); cursor: default; }
+.beschriftung-slot.wrong { border-color: var(--red); background: var(--red-dim); cursor: default; }
+
 /* QUIZ – Reihenfolge / Sortieren */
 .reihenfolge-list { list-style: none; display: flex; flex-direction: column; gap: 8px; padding: 0; }
 .reihenfolge-item {

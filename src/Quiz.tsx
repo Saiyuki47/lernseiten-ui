@@ -10,6 +10,7 @@ import { ReihenfolgeQuestion } from './quiz/ReihenfolgeQuestion'
 import { KategorienQuestion } from './quiz/KategorienQuestion'
 import { EingabeQuestion } from './quiz/EingabeQuestion'
 import { WahrFalschQuestion } from './quiz/WahrFalschQuestion'
+import { BeschriftungQuestion } from './quiz/BeschriftungQuestion'
 import { shuffleIndices } from './quiz/shuffle'
 import { useEnterKey } from './useNumberKeys'
 
@@ -241,6 +242,7 @@ function QuizRun({
         {q.art === 'kategorien' && <KategorienQuestion key={order[qi]} q={q} onDone={handleDone} />}
         {q.art === 'eingabe' && <EingabeQuestion key={order[qi]} q={q} onDone={handleDone} />}
         {q.art === 'wahrfalsch' && <WahrFalschQuestion key={order[qi]} q={q} onDone={handleDone} />}
+        {q.art === 'beschriftung' && <BeschriftungQuestion key={order[qi]} q={q} onDone={handleDone} />}
 
         {answered && q.bild && <div className="quiz-bild" style={{ marginTop: '0.75rem' }}>{q.bild}</div>}
 
@@ -281,6 +283,7 @@ const TYP_LABEL: Record<QuizFrage['art'], string> = {
   kategorien: 'Kategorisieren',
   eingabe: 'Eingabe',
   wahrfalsch: 'Wahr/Falsch',
+  beschriftung: 'Abbildung beschriften',
 }
 function labelFor(art: QuizFrage['art']): string {
   return TYP_LABEL[art]

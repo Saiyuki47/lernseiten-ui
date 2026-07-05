@@ -1,5 +1,5 @@
 // --- Quiz ---
-// Sieben Fragetypen mit reichem Feedback. Jede Option kann begründen, warum sie
+// Acht Fragetypen mit reichem Feedback. Jede Option kann begründen, warum sie
 // (bei falscher Wahl) nicht stimmt; jede Frage hat eine Erklärung der Lösung.
 import type { ReactNode } from 'react'
 
@@ -81,6 +81,41 @@ export interface QuizWahrFalsch extends QuizBasis {
   aussagen: { text: string; wahr: boolean; warum?: string }[]
 }
 
+/** Ein Beschriftungs-Slot: leerer Kasten in einer Abbildung, in viewBox-Einheiten. */
+export interface BeschriftungSlot {
+  /** Korrekter Begriff – zugleich Chip-Text im Pool und Vergleichsbasis. */
+  label: string
+  x: number
+  y: number
+  w: number
+  h: number
+  /**
+   * Austausch-Gruppe: Slots mit derselben Gruppe akzeptieren ihre Labels in
+   * beliebiger Verteilung (für gleichwertige Positionen, z.B. parallele
+   * Anspruchsgruppen). Ohne Gruppe muss exakt der eigene Label sitzen.
+   */
+  gruppe?: string
+}
+
+/**
+ * Abbildung beschriften: eine Abbildung ohne Begriffe wird gezeigt; die
+ * Begriffe werden per Drag & Drop (oder Klick-Zuordnung) in die leeren Kästen
+ * gezogen. Die vollständige Abbildung gehört in `bild` (Lösung nach dem
+ * Beantworten). Slot-Koordinaten sind viewBox-Einheiten des SVG in `bildLeer`.
+ */
+export interface QuizBeschriftung extends QuizBasis {
+  art: 'beschriftung'
+  /** Abbildung ohne die gesuchten Begriffe (SVG mit width:100%). */
+  bildLeer: ReactNode
+  /** viewBox-Breite des SVG – für die prozentuale Overlay-Umrechnung. */
+  viewBoxW: number
+  /** viewBox-Höhe des SVG. */
+  viewBoxH: number
+  /** Maximale Darstellungsbreite in px (entspricht dem maxWidth des SVG). */
+  maxWidth?: number
+  slots: BeschriftungSlot[]
+}
+
 export type QuizFrage =
   | QuizSingle
   | QuizMulti
@@ -89,3 +124,4 @@ export type QuizFrage =
   | QuizKategorien
   | QuizEingabe
   | QuizWahrFalsch
+  | QuizBeschriftung
