@@ -100,10 +100,14 @@ export function useTaskDeepLink<E extends HTMLElement = HTMLDivElement>(blattId:
         else break
       }
       const nr = chosen?.dataset.aufgabe
-      if (nr && nr !== last) {
-        last = nr
-        setHashDetail(blattId, nr, tab)
-      }
+      if (!nr || nr === last) return
+      // Saubere URL (ohne Detail) am Seitenanfang sauber lassen: der Klick auf
+      // den Titel führt zur cleanen URL, und die soll nicht sofort wieder mit
+      // #tab/blatt/aufgabe überschrieben werden. Erst echtes Scrollen (oben
+      // sichtbare Karte ist nicht mehr die erste) aktiviert das Mitschreiben.
+      if (!getHashDetail().blatt && chosen === cards[0]) return
+      last = nr
+      setHashDetail(blattId, nr, tab)
     }
     const io = new IntersectionObserver(update, { threshold: [0, 1] })
     cards.forEach(c => io.observe(c))
