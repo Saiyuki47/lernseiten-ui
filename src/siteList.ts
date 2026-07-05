@@ -15,33 +15,28 @@ export const LERNSEITEN: LernSeite[] = [
 ]
 
 // Tab-IDs (erstes Hash-Segment) je Seite – für die Tab-Mitnahme beim
-// Seitenwechsel im SiteNav. Muss den TABS-Listen der App.tsx entsprechen;
+// Seitenwechsel im SiteNav. Die IDs sind über alle Seiten vereinheitlicht
+// (uebung/referenz/hilfsmittel/moodle/quiz/karten); 'schema' ist der
+// Datenbanken-Sonderfall. Muss den TABS-Listen der App.tsx entsprechen;
 // fehlt ein Tab hier, landet der Wechsel schlimmstenfalls auf dem
 // Standard-Tab der Zielseite (useHashTab-Fallback), nie auf einem Fehler.
+const GEMEINSAME_TABS = ['uebung', 'referenz', 'hilfsmittel', 'moodle', 'quiz', 'karten'] as const
 const SITE_TABS: Record<string, readonly string[]> = {
-  algebraische: ['uebung', 'referenz', 'formelsammlung', 'moodle', 'quiz', 'karten'],
-  mathe: ['uebung', 'referenz', 'hilfsmittel', 'moodle', 'quiz', 'karten'],
-  bwl: ['uebung', 'formeln', 'drucken', 'moodle', 'quiz', 'karten'],
-  datenbanken: ['uebung', 'themen', 'schema', 'moodle', 'quiz', 'karten'],
+  algebraische: GEMEINSAME_TABS,
+  mathe: GEMEINSAME_TABS,
+  bwl: GEMEINSAME_TABS,
+  datenbanken: [...GEMEINSAME_TABS, 'schema'],
 }
-
-// Das „Nachschlage"-Tab heißt je Seite anders – diese Tabs gelten beim
-// Seitenwechsel als gleichwertig (Referenz ↔ Formeln ↔ Themen).
-const REFERENZ_FAMILIE: readonly string[] = ['referenz', 'formeln', 'themen']
 
 /**
  * Ziel-URL beim Seitenwechsel: nimmt NUR den aktuellen Tab mit (erstes
  * Hash-Segment – Details wie Blatt/Aufgabe sind seitenspezifisch und werden
- * bewusst verworfen). Hat die Zielseite keinen entsprechenden Tab, bleibt es
- * bei der nackten URL (= deren Standard-Tab).
+ * bewusst verworfen). Hat die Zielseite keinen entsprechenden Tab (z.B.
+ * Datenbanken-'schema'), bleibt es bei der nackten URL (= deren Standard-Tab).
  */
 export function siteWechselUrl(site: LernSeite, aktuellerTab?: string): string {
   const tabs = SITE_TABS[site.key]
   if (!aktuellerTab || !tabs) return site.url
   if (tabs.includes(aktuellerTab)) return `${site.url}#${aktuellerTab}`
-  if (REFERENZ_FAMILIE.includes(aktuellerTab)) {
-    const eq = REFERENZ_FAMILIE.find(t => tabs.includes(t))
-    if (eq) return `${site.url}#${eq}`
-  }
   return site.url
 }
