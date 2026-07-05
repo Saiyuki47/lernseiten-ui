@@ -91,6 +91,13 @@ export function useTaskDeepLink<E extends HTMLElement = HTMLDivElement>(blattId:
     if (cards.length === 0) return
     let last = ''
     const update = () => {
+      // Beim Tab-Wechsel feuert der Observer noch während des Unmounts (Karten
+      // sind schon aus dem Dokument, alle Rects 0) – dann würde der Hash des
+      // NEUEN Tabs mit #<tab>/blatt/aufgabe überschrieben. Nicht schreiben,
+      // wenn die Karten nicht mehr hängen oder ein anderer Tab im Hash steht.
+      if (!root.isConnected) return
+      const aktiverTab = getHashDetail().tab
+      if (aktiverTab && aktiverTab !== tab) return
       // unterste Karte, deren Oberkante schon (fast) am oberen Rand anliegt
       // (= die oben sichtbare); vor dem Scrollen die erste Karte.
       let chosen = cards[0]

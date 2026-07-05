@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
-import { LERNSEITEN } from './siteList'
+import { LERNSEITEN, siteWechselUrl } from './siteList'
+import { getHashDetail } from './useHashTab'
 
 // Fächer-Navigation als Dropdown: ein Button „Lernfächer ▾" öffnet ein Menü mit
 // allen Lernseiten. Navigation erfolgt im SELBEN Tab (gleicher Origin → fühlt
-// sich wie eine App an, Fortschritt bleibt erhalten). `current` = aktuelle Seite
-// (wird markiert, nicht verlinkt). CSS wird selbst injiziert (site-nav-*).
+// sich wie eine App an, Fortschritt bleibt erhalten). Der aktuell offene Tab
+// (erstes Hash-Segment) wird auf die Zielseite mitgenommen, sofern sie einen
+// entsprechenden Tab hat – Details wie Blatt/Aufgabe bewusst nicht. `current`
+// = aktuelle Seite (wird markiert, nicht verlinkt). CSS selbst injiziert.
 export function SiteNav({ current }: { current?: string }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -54,7 +57,7 @@ export function SiteNav({ current }: { current?: string }) {
             ) : (
               <a
                 key={s.key}
-                href={s.url}
+                href={siteWechselUrl(s, getHashDetail().tab)}
                 role="menuitem"
                 className="site-nav-item"
                 onClick={() => setOpen(false)}
