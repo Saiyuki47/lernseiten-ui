@@ -16,10 +16,17 @@ interface Props {
 // (SiteNav) und der Hell/Dunkel-Umschalter. Nutzt die App-CSS-Klassen
 // (header/.logo/.subtitle/.theme-toggle), die in der gemeinsamen Basis liegen.
 export function Header({ logo, subtitle, current, theme, onToggleTheme }: Props) {
+  // Klick auf den Titel führt zur sauberen URL zurück (Pfad ohne #-Hash) —
+  // die Seite lädt im Startzustand, Deep-Link-Reste wie #uebung/blatt0/1
+  // verschwinden. Echter Link, damit auch Mittelklick/Neuer-Tab funktioniert.
+  const cleanHref =
+    typeof window === 'undefined' ? '.' : window.location.pathname + window.location.search
   return (
     <header>
       <div>
-        <div className="logo">{logo}</div>
+        <a className="logo" href={cleanHref} title="Zur Startansicht">
+          {logo}
+        </a>
         <div className="subtitle">{subtitle}</div>
         <SiteNav current={current} />
       </div>

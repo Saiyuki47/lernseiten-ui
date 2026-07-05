@@ -95,6 +95,13 @@ header > :first-child { flex: 1; }
   letter-spacing: -0.02em;
 }
 .logo span { color: var(--blue); }
+/* Logo ist ein Link zur Startansicht (saubere URL ohne Hash) — Optik wie zuvor */
+a.logo {
+  display: block;
+  text-decoration: none;
+  cursor: pointer;
+}
+a.logo:hover { opacity: 0.85; }
 .subtitle { font-size: 13px; color: var(--text3); font-family: var(--font-mono); }
 
 /* LAYOUT */
