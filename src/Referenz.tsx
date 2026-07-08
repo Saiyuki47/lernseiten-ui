@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { isValidElement, useEffect, useRef, useState, type ReactNode } from 'react'
 import { getHashDetail, setHashDetail } from './useHashTab'
 
 // ---------------------------------------------------------------------------
@@ -231,9 +231,13 @@ export function Referenz({
                       <span className="lsref-bsp-n">({gruppe.beispiele.length})</span>
                     </summary>
                     <ol className="lsref-bsp-list">
-                      {gruppe.beispiele.map((bsp, i) => (
-                        <li key={i}>{bsp}</li>
-                      ))}
+                      {gruppe.beispiele.map((bsp, i) => {
+                        // Stabiler Key aus dem gelieferten Node (der Consumer keyt seine
+                        // Beispiel-Elemente); der Index dient nur als Fallback für den
+                        // seltenen Fall eines Nicht-Elements (z.B. reiner String).
+                        const bspKey = (isValidElement(bsp) ? bsp.key : null) ?? i
+                        return <li key={bspKey}>{bsp}</li>
+                      })}
                     </ol>
                   </details>
                 ))}
