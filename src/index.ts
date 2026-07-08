@@ -1,5 +1,7 @@
 export { Quiz } from './Quiz'
 export { useTheme } from './useTheme'
+export { useZoom, ZOOM_LEVELS } from './useZoom'
+export type { ZoomLevel } from './useZoom'
 export { useQuizProgress } from './useQuizProgress'
 export { useHashTab, getHashDetail, setHashDetail, useTaskDeepLink } from './useHashTab'
 export { useDoneTracker } from './useDoneTracker'

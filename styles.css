@@ -88,6 +88,21 @@ header > :first-child { flex: 1; }
   flex-shrink: 0;
 }
 .theme-toggle:hover { background: var(--bg3); border-color: var(--border2); }
+/* Zoom-Auswahl (Seitengröße) — Optik passend zum Theme-Umschalter */
+.zoom-select {
+  background: none;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  height: 36px;
+  padding: 0 0.5rem;
+  color: var(--text2);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+.zoom-select:hover { background: var(--bg3); border-color: var(--border2); }
 .logo {
   font-size: 18px;
   font-weight: 600;
@@ -542,6 +557,7 @@ a.logo:hover { opacity: 0.85; }
 .filter-btn:focus-visible,
 .hilf-print-btn:focus-visible,
 .theme-toggle:focus-visible,
+.zoom-select:focus-visible,
 .site-nav-btn:focus-visible,
 .lsref-nav a:focus-visible,
 .lsref-bsp>summary:focus-visible {
