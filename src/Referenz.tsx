@@ -1,4 +1,4 @@
-import { Children, useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { getHashDetail, setHashDetail } from './useHashTab'
 
 // ---------------------------------------------------------------------------
@@ -231,7 +231,9 @@ export function Referenz({
                       <span className="lsref-bsp-n">({gruppe.beispiele.length})</span>
                     </summary>
                     <ol className="lsref-bsp-list">
-                      {Children.toArray(gruppe.beispiele.map(bsp => <li>{bsp}</li>))}
+                      {gruppe.beispiele.map((bsp, i) => (
+                        <li key={i}>{bsp}</li>
+                      ))}
                     </ol>
                   </details>
                 ))}
