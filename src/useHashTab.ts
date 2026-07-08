@@ -46,6 +46,44 @@ export function useHashTab<T extends string>(allowed: readonly T[], fallback: T)
   return [value, set]
 }
 
+// Wie useHashTab, aber für einen UNTERtab innerhalb eines Tabs: hält den Zustand
+// mit dem ZWEITEN Hash-Segment synchron (#<tab>/<untertab>) – analog zum
+// Blatt/Aufgabe-Deep-Link der Übungsblätter. Damit ist z. B. die im Hilfsmittel-
+// Tab gewählte Formelsammlung teilbar und übersteht den Reload. Der Wechsel
+// schreibt per replaceState (kein History-Eintrag, kein hashchange) und behält
+// den aktuellen Tab (erstes Segment) bei. `allowed` = erlaubte Werte
+// (unbekannte/leere → `fallback`).
+//
+//   const [fs, setFs] = useHashSubTab(['claude','madis','rezepte'] as const, 'claude')
+export function useHashSubTab<T extends string>(allowed: readonly T[], fallback: T): [T, (v: T) => void] {
+  const cfg = useRef({ allowed, fallback })
+  cfg.current = { allowed, fallback }
+
+  const parse = (): T => {
+    const h = (seg(1) ?? '') as T
+    return cfg.current.allowed.includes(h) ? h : cfg.current.fallback
+  }
+
+  const [value, setValue] = useState<T>(parse)
+
+  useEffect(() => {
+    const onHash = () => {
+      const h = (seg(1) ?? '') as T
+      setValue(cfg.current.allowed.includes(h) ? h : cfg.current.fallback)
+    }
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [])
+
+  // Untertab-Wechsel schreibt das zweite Segment (Tab bleibt erhalten).
+  const set = useCallback((v: T) => {
+    setValue(v)
+    setHashDetail(v)
+  }, [])
+
+  return [value, set]
+}
+
 // Liest die Tief-Link-Teile aus dem Hash (#tab/blatt/aufgabe).
 export function getHashDetail(): { tab: string; blatt?: string; aufgabe?: string } {
   return { tab: seg(0) ?? '', blatt: seg(1), aufgabe: seg(2) }

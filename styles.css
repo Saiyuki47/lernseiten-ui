@@ -548,6 +548,15 @@ a.logo:hover { opacity: 0.85; }
 @media print{.hilf-bar{display:none!important}}
 @media(max-width:620px){.hilf-bar{align-items:stretch}.hilf-bar-actions{width:100%}.hilf-print-btn{flex:1;justify-content:center}}
 
+/* Untertab-Umschalter im Hilfsmittel-Tab (Formelsammlung/Ansicht wählen) –
+   einheitlich über Mathe, Algebraische und BWL; per useHashSubTab an den Hash
+   gekoppelt (#hilfsmittel/<untertab>). Beim Drucken ausgeblendet. */
+.hilf-fs-switch{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.9rem}
+.hilf-fs-tab{padding:.4rem .85rem;border:1px solid var(--border);border-radius:7px;background:var(--bg2);color:var(--text);cursor:pointer;font-size:.9rem;font-weight:600}
+.hilf-fs-tab:hover{border-color:var(--blue)}
+.hilf-fs-tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+@media print{.hilf-fs-switch{display:none!important}}
+
 /* ============================================================================
    A11y: sichtbarer Tastatur-Fokus für alle interaktiven Steuerelemente.
    (Maus-Klick zeigt dank :focus-visible keinen Rahmen.)
@@ -556,6 +565,7 @@ a.logo:hover { opacity: 0.85; }
 .toggle-btn:focus-visible,
 .filter-btn:focus-visible,
 .hilf-print-btn:focus-visible,
+.hilf-fs-tab:focus-visible,
 .theme-toggle:focus-visible,
 .zoom-select:focus-visible,
 .site-nav-btn:focus-visible,
