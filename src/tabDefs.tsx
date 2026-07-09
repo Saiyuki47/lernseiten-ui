@@ -75,7 +75,7 @@ const LABELS: Record<string, string> = {
 }
 
 /** Einheitliche Reihenfolge der gemeinsamen Tabs (Sonderfälle wie 'schema' hängen die Apps hinten an). */
-export const STANDARD_TAB_REIHENFOLGE = ['uebung', 'referenz', 'hilfsmittel', 'karten', 'moodle', 'quiz'] as const
+export const STANDARD_TAB_REIHENFOLGE = ['uebung', 'referenz', 'hilfsmittel', 'moodle', 'karten', 'quiz'] as const
 
 /** TabDefs für die Tab-Leiste aus Standard-IDs bauen (Label + Icon zentral). */
 export function tabDefs<T extends string>(ids: readonly T[]): TabDef<T>[] {
