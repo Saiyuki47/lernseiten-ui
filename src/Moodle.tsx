@@ -204,22 +204,91 @@ function collectAllFiles(folder: DateiFolder, trail: string[]): FileHit[] {
   return out
 }
 
-export function Moodle({ tree, baseUrl = '', intro }: { tree: DateiFolder; baseUrl?: string; intro?: string }) {
+// ---------------------------------------------------------------------------
+// Kategorie-Übersicht (Kachel-Design). Jeder Top-Level-Ordner wird zu einer
+// Karte mit Icon, hübschem Namen, Typ-Etikett (farbcodiert) und Datei-Zähler.
+// Der Typ wird aus dem Ordnernamen erraten; der Anzeigename kann per `labels`
+// (Ordner-Pfad → Text) überschrieben werden, sonst wird der Rohname aufgehübscht.
+// ---------------------------------------------------------------------------
+
+type CatType = 'material' | 'uebung' | 'loesung' | 'klausur' | 'sonstiges'
+
+const CAT_STYLE: Record<CatType, { color: string; dim: string; emoji: string; tag: string }> = {
+  material:  { color: 'var(--blue)',  dim: 'var(--blue-dim)',  emoji: '📘', tag: 'Material' },
+  uebung:    { color: 'var(--green)', dim: 'var(--green-dim)', emoji: '✏️', tag: 'Übung' },
+  loesung:   { color: 'var(--amber)', dim: 'var(--amber-dim)', emoji: '✅', tag: 'Lösung' },
+  klausur:   { color: 'var(--red)',   dim: 'var(--red-dim)',   emoji: '🎓', tag: 'Klausur' },
+  sonstiges: { color: 'var(--text2)', dim: 'var(--bg3)',       emoji: '📁', tag: 'Sonstiges' },
+}
+
+// Rät den Kategorie-Typ aus dem Ordnernamen (Reihenfolge = Priorität).
+function categoryType(name: string): CatType {
+  const n = name.toLowerCase()
+  if (/klausur|pr[üu]fung|exam|probeklausur/.test(n)) return 'klausur'
+  if (/l[öo]sung|lsg|solution/.test(n)) return 'loesung'
+  if (/[üu]bung|aufgabe|training|trainier|blatt/.test(n)) return 'uebung'
+  if (/orga|readme|verschieden|unofficial|stuff|sonstig|unterlagen|mitschrift/.test(n)) return 'sonstiges'
+  return 'material'
+}
+
+// Rohen Ordnernamen lesbar machen: Datums-Anhängsel (…-20260621) weg,
+// Bindestriche/Unterstriche → Leerzeichen, ersten Buchstaben groß.
+function prettify(raw: string): string {
+  const s = raw.replace(/[-_ ]+20\d{6}.*$/i, '').replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim()
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
+// Kompakte Typ-Zusammenfassung („PDF · Bild") der Dateien im (Unter-)Baum.
+function typeSummary(folder: DateiFolder): string {
+  const seen = new Set<DateiTyp>()
+  const walk = (f: DateiFolder) => {
+    for (const x of f.files) if (!x.isReadme) seen.add(x.typ)
+    for (const s of f.folders) walk(s)
+  }
+  walk(folder)
+  const order: DateiTyp[] = ['pdf', 'image', 'video', 'office', 'text', 'archive', 'link', 'other']
+  return order.filter(t => seen.has(t)).map(t => TYPE_LABEL[t]).slice(0, 3).join(' · ')
+}
+
+function metaLine(folder: DateiFolder): string {
+  const total = countFiles(folder)
+  const subs = folder.folders.length
+  const parts = [`${total} ${total === 1 ? 'Datei' : 'Dateien'}`]
+  if (subs > 0) parts.push(`${subs} ${subs === 1 ? 'Ordner' : 'Ordner'}`)
+  const types = typeSummary(folder)
+  if (types) parts.push(types)
+  return parts.join(' · ')
+}
+
+function CategoryCard({ folder, label, onOpen }: { folder: DateiFolder; label: string; onOpen: () => void }) {
+  const style = CAT_STYLE[categoryType(folder.name)]
+  return (
+    <button type="button" className="dz-card" onClick={onOpen}>
+      <span className="dz-card-icon" style={{ color: style.color, background: style.dim }} aria-hidden="true">{style.emoji}</span>
+      <span className="dz-card-name">{label}</span>
+      <span className="dz-card-tag" style={{ color: style.color, background: style.dim }}>{style.tag}</span>
+      <span className="dz-card-meta">{metaLine(folder)}</span>
+    </button>
+  )
+}
+
+export function Moodle({ tree, baseUrl = '', intro, labels }: { tree: DateiFolder; baseUrl?: string; intro?: string; labels?: Record<string, string> }) {
   useEffect(() => { injectCss() }, [])
   const [query, setQuery] = useState('')
-  const [active, setActive] = useState<string>(() => tree.folders[0]?.path ?? '')
+  const [open, setOpen] = useState<string | null>(null)
   const q = query.trim().toLowerCase()
 
   const allFiles = useMemo(() => collectAllFiles(tree, []), [tree])
   const pinned = useMemo(() => tree.files.filter(f => !f.isReadme), [tree])
   const results = q ? allFiles.filter(r => r.file.name.toLowerCase().includes(q)) : []
-  const activeFolder = tree.folders.find(f => f.path === active)
+  const openFolder = open ? tree.folders.find(f => f.path === open) : undefined
+  const labelFor = (f: DateiFolder) => labels?.[f.path] ?? prettify(f.name)
 
   return (
     <div>
       <div className="section-header">
         <h2>Moodle</h2>
-        <p>{intro ?? 'Alle Materialien von Moodle – nach Kategorie. Klappe eine Datei auf, um sie direkt anzusehen.'}</p>
+        <p>{intro ?? 'Alle Materialien von Moodle – nach Kategorie. Wähle eine Kachel, um ihre Dateien zu öffnen.'}</p>
       </div>
 
       {pinned.length > 0 && (
@@ -250,32 +319,22 @@ export function Moodle({ tree, baseUrl = '', intro }: { tree: DateiFolder; baseU
             ))}
           </div>
         )
+      ) : openFolder ? (
+        <section className="dz-section">
+          <button type="button" className="dz-back" onClick={() => setOpen(null)}>← Alle Kategorien</button>
+          <h3 className="dz-cat-title">
+            <span className="dz-cat-emoji" aria-hidden="true">{CAT_STYLE[categoryType(openFolder.name)].emoji}</span>
+            {labelFor(openFolder)}
+            <span className="dz-folder-count">{countFiles(openFolder)}</span>
+          </h3>
+          <FolderContent folder={openFolder} baseUrl={baseUrl} />
+        </section>
       ) : (
-        <>
-          {tree.folders.length > 1 && (
-            <div className="filter-row dz-subtabs">
-              {tree.folders.map(f => (
-                <button
-                  type="button"
-                  key={f.path}
-                  className={`filter-btn${active === f.path ? ' on' : ''}`}
-                  onClick={() => setActive(f.path)}
-                >
-                  {f.name}
-                </button>
-              ))}
-            </div>
-          )}
-          {activeFolder && (
-            <section className="dz-section">
-              <h3 className="dz-folder-title dz-folder-title--extra">
-                {cap(activeFolder.name)}
-                <span className="dz-folder-count">{countFiles(activeFolder)}</span>
-              </h3>
-              <FolderContent folder={activeFolder} baseUrl={baseUrl} />
-            </section>
-          )}
-        </>
+        <div className="dz-cards">
+          {tree.folders.map(f => (
+            <CategoryCard key={f.path} folder={f} label={labelFor(f)} onOpen={() => setOpen(f.path)} />
+          ))}
+        </div>
       )}
     </div>
   )
@@ -330,6 +389,19 @@ const MOODLE_CSS = `
 .dz-subfolder{display:flex;flex-direction:column;gap:6px;margin:6px 0 2px;padding-left:12px;border-left:2px solid var(--border)}
 .dz-subfolder-title{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--text2);margin:2px 0}
 .dz-crumb{font-size:11.5px;color:var(--text3);font-family:var(--font-mono);margin:10px 0 3px}
+.dz-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;margin-top:1.25rem}
+.dz-card{display:flex;flex-direction:column;align-items:flex-start;gap:9px;text-align:left;padding:14px 15px;border:1px solid var(--border);border-radius:14px;background:var(--bg);cursor:pointer;font-family:var(--font-sans);color:var(--text);transition:border-color .12s ease,transform .12s ease}
+.dz-card:hover{border-color:var(--text3);transform:translateY(-2px)}
+.dz-card:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.dz-card-icon{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.dz-card-name{font-size:14.5px;font-weight:600;line-height:1.3}
+.dz-card-tag{font-size:10.5px;font-weight:600;letter-spacing:0.03em;border-radius:6px;padding:2px 8px}
+.dz-card-meta{margin-top:2px;font-size:12px;color:var(--text2);line-height:1.5}
+.dz-back{align-self:flex-start;background:transparent;border:none;cursor:pointer;font-family:var(--font-sans);font-size:13px;color:var(--blue);padding:0;margin-bottom:14px}
+.dz-back:hover{text-decoration:underline}
+.dz-cat-title{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:600;color:var(--text);margin:0 0 14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.dz-cat-emoji{flex:none;font-size:20px}
+.dz-cat-title .dz-folder-count{margin-left:auto}
 `
 
 function injectCss() {
