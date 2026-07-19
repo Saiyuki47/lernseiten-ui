@@ -221,6 +221,18 @@ const CAT_STYLE: Record<CatType, { color: string; dim: string; emoji: string; ta
   sonstiges: { color: 'var(--text2)', dim: 'var(--bg3)',       emoji: '📁', tag: 'Sonstiges' },
 }
 
+// Reihenfolge der Gruppen: erst offizielles Lernmaterial, dann Üben, dann
+// Prüfungsvorbereitung, Persönliches/Sonstiges zuletzt.
+const CAT_ORDER: CatType[] = ['material', 'uebung', 'loesung', 'klausur', 'sonstiges']
+
+const DEFAULT_GROUP_TITLES: Record<CatType, string> = {
+  material: 'Vorlesung & Material',
+  uebung: 'Übungen',
+  loesung: 'Lösungen',
+  klausur: 'Klausuren',
+  sonstiges: 'Weitere Unterlagen',
+}
+
 // Rät den Kategorie-Typ aus dem Ordnernamen (Reihenfolge = Priorität).
 function categoryType(name: string): CatType {
   const n = name.toLowerCase()
@@ -272,7 +284,27 @@ function CategoryCard({ folder, label, onOpen }: { folder: DateiFolder; label: s
   )
 }
 
-export function Moodle({ tree, baseUrl = '', intro, labels }: { tree: DateiFolder; baseUrl?: string; intro?: string; labels?: Record<string, string> }) {
+interface SortedFolder { folder: DateiFolder; label: string; type: CatType }
+
+// Sortiert die Ordner: erst nach Gruppentyp (CAT_ORDER), dann nach der optional
+// vorgegebenen `order`-Liste (Ordnerpfade), zuletzt alphabetisch.
+function sortFolders(folders: DateiFolder[], labelFor: (f: DateiFolder) => string, order?: string[]): SortedFolder[] {
+  const rank = (p: string) => {
+    const i = order ? order.indexOf(p) : -1
+    return i === -1 ? Number.MAX_SAFE_INTEGER : i
+  }
+  return folders
+    .map(f => ({ folder: f, label: labelFor(f), type: categoryType(f.name) }))
+    .sort((a, b) => {
+      const t = CAT_ORDER.indexOf(a.type) - CAT_ORDER.indexOf(b.type)
+      if (t !== 0) return t
+      const r = rank(a.folder.path) - rank(b.folder.path)
+      if (r !== 0) return r
+      return a.label.localeCompare(b.label, 'de')
+    })
+}
+
+export function Moodle({ tree, baseUrl = '', intro, labels, order, groupTitles, grouped }: { tree: DateiFolder; baseUrl?: string; intro?: string; labels?: Record<string, string>; order?: string[]; groupTitles?: Partial<Record<CatType, string>>; grouped?: boolean }) {
   useEffect(() => { injectCss() }, [])
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState<string | null>(null)
@@ -283,6 +315,20 @@ export function Moodle({ tree, baseUrl = '', intro, labels }: { tree: DateiFolde
   const results = q ? allFiles.filter(r => r.file.name.toLowerCase().includes(q)) : []
   const openFolder = open ? tree.folders.find(f => f.path === open) : undefined
   const labelFor = (f: DateiFolder) => labels?.[f.path] ?? prettify(f.name)
+
+  const sorted = useMemo(
+    () => sortFolders(tree.folders, f => labels?.[f.path] ?? prettify(f.name), order),
+    [tree, labels, order],
+  )
+  // Bei wenigen Kacheln (z. B. Algebra: Folien/Übungen/Lösungen) wären Überschriften
+  // mehr Ballast als Hilfe – dann flach, nur sortiert.
+  const showGroups = grouped ?? tree.folders.length > 4
+  const groups = useMemo(
+    () => CAT_ORDER
+      .map(t => ({ type: t, title: groupTitles?.[t] ?? DEFAULT_GROUP_TITLES[t], items: sorted.filter(s => s.type === t) }))
+      .filter(g => g.items.length > 0),
+    [sorted, groupTitles],
+  )
 
   return (
     <div>
@@ -329,10 +375,27 @@ export function Moodle({ tree, baseUrl = '', intro, labels }: { tree: DateiFolde
           </h3>
           <FolderContent folder={openFolder} baseUrl={baseUrl} />
         </section>
+      ) : showGroups ? (
+        <div>
+          {groups.map(g => (
+            <section className="dz-group" key={g.type}>
+              <div className="dz-group-head">
+                <span className="dz-group-title">{g.title}</span>
+                <span className="dz-group-count">{g.items.length}</span>
+                <span className="dz-group-rule" />
+              </div>
+              <div className="dz-cards">
+                {g.items.map(({ folder, label }) => (
+                  <CategoryCard key={folder.path} folder={folder} label={label} onOpen={() => setOpen(folder.path)} />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
       ) : (
         <div className="dz-cards">
-          {tree.folders.map(f => (
-            <CategoryCard key={f.path} folder={f} label={labelFor(f)} onOpen={() => setOpen(f.path)} />
+          {sorted.map(({ folder, label }) => (
+            <CategoryCard key={folder.path} folder={folder} label={label} onOpen={() => setOpen(folder.path)} />
           ))}
         </div>
       )}
@@ -390,6 +453,13 @@ const MOODLE_CSS = `
 .dz-subfolder-title{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--text2);margin:2px 0}
 .dz-crumb{font-size:11.5px;color:var(--text3);font-family:var(--font-mono);margin:10px 0 3px}
 .dz-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;margin-top:1.25rem}
+.dz-group{display:block;margin-top:1.75rem}
+.dz-group:first-child{margin-top:1.25rem}
+.dz-group .dz-cards{margin-top:0}
+.dz-group-head{display:flex;align-items:center;gap:10px;margin:0 0 11px}
+.dz-group-title{font-size:12px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:var(--text2);white-space:nowrap}
+.dz-group-count{flex:none;font-size:11px;color:var(--text3);background:var(--bg3);border-radius:999px;padding:1px 8px}
+.dz-group-rule{flex:1;height:1px;background:var(--border)}
 .dz-card{display:flex;flex-direction:column;align-items:flex-start;gap:9px;text-align:left;padding:14px 15px;border:1px solid var(--border);border-radius:14px;background:var(--bg);cursor:pointer;font-family:var(--font-sans);color:var(--text);transition:border-color .12s ease,transform .12s ease}
 .dz-card:hover{border-color:var(--text3);transform:translateY(-2px)}
 .dz-card:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
