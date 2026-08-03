@@ -323,12 +323,16 @@ export function Moodle({ tree, baseUrl = '', intro, labels, order, groupTitles, 
   // Bei wenigen Kacheln (z. B. Algebra: Folien/Übungen/Lösungen) wären Überschriften
   // mehr Ballast als Hilfe – dann flach, nur sortiert.
   const showGroups = grouped ?? tree.folders.length > 4
-  const groups = useMemo(
-    () => CAT_ORDER
-      .map(t => ({ type: t, title: groupTitles?.[t] ?? DEFAULT_GROUP_TITLES[t], items: sorted.filter(s => s.type === t) }))
-      .filter(g => g.items.length > 0),
-    [sorted, groupTitles],
-  )
+  const groups = useMemo(() => {
+    // In einem Durchlauf über CAT_ORDER die nicht-leeren Gruppen sammeln
+    // (statt .map().filter(), das zweimal iterieren würde).
+    const out: { type: CatType; title: string; items: SortedFolder[] }[] = []
+    for (const t of CAT_ORDER) {
+      const items = sorted.filter(s => s.type === t)
+      if (items.length > 0) out.push({ type: t, title: groupTitles?.[t] ?? DEFAULT_GROUP_TITLES[t], items })
+    }
+    return out
+  }, [sorted, groupTitles])
 
   return (
     <div>

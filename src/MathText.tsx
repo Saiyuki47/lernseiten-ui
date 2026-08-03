@@ -24,13 +24,21 @@ const SUBHEAD_RE = /^\*\*([^*]+)\*\*$/
 // `$…$` innerhalb eines Textstücks rendern (auch im Inneren von **fett** nötig,
 // damit z. B. "**gleichmächtig zu $\mathbb{N}$**" nicht als roher String endet).
 function parseMath(text: string, keyPrefix: string): React.ReactNode[] {
-  return text.split(/(\$[^$]+\$)/g).map((part, i) =>
-    part.startsWith('$') && part.endsWith('$') && part.length > 2 ? (
-      <KatexSpan key={`${keyPrefix}m${i}`} tex={part.slice(1, -1)} />
-    ) : (
-      <React.Fragment key={`${keyPrefix}t${i}`}>{part}</React.Fragment>
-    ),
-  )
+  // Key aus dem Zeichen-Offset (stabil & eindeutig) statt aus dem Array-Index.
+  // Leere Split-Teile überspringen wir – sie rendern nichts und würden sich sonst
+  // den Offset des Folgeteils teilen.
+  const out: React.ReactNode[] = []
+  let offset = 0
+  for (const part of text.split(/(\$[^$]+\$)/g)) {
+    const key = `${keyPrefix}@${offset}`
+    offset += part.length
+    if (part.startsWith('$') && part.endsWith('$') && part.length > 2) {
+      out.push(<KatexSpan key={key} tex={part.slice(1, -1)} />)
+    } else if (part !== '') {
+      out.push(<React.Fragment key={key}>{part}</React.Fragment>)
+    }
+  }
+  return out
 }
 
 function parseLine(line: string): React.ReactNode[] {

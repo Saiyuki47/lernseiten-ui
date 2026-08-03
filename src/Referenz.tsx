@@ -140,25 +140,46 @@ export function Referenz({
   // KaTeX/Fonts rendern asynchron und verschieben das Layout, daher mehrfach
   // nachscrollen, bis die Karte sicher oben steht.
   useEffect(() => {
-    const scrollToHash = () => {
-      const d = getHashDetail()
-      if (d.tab !== tab || !d.blatt) return
-      const id = cardDomId(d.blatt)
-      const doScroll = () => {
-        const el = document.getElementById(id)
-        if (el) el.scrollIntoView({ block: 'start' })
-      }
-      setActiveId(d.blatt)
-      requestAnimationFrame(doScroll)
-      setTimeout(doScroll, 200)
-      setTimeout(doScroll, 500)
+    let cancelled = false
+    const scrollTo = (blatt: string) => {
+      const el = document.getElementById(cardDomId(blatt))
+      if (el) el.scrollIntoView({ block: 'start' })
+    }
+
+    // Beim Laden (bzw. Tab-Wechsel): steht schon ein Ziel im Hash, mehrfach
+    // nachscrollen, weil KaTeX/Fonts das Layout asynchron verschieben. Die zwei
+    // Timer + der Frame werden erfasst und im Cleanup abgeräumt.
+    let raf = 0
+    let retry1: ReturnType<typeof setTimeout> | undefined
+    let retry2: ReturnType<typeof setTimeout> | undefined
+    const initial = getHashDetail()
+    if (initial.tab === tab && initial.blatt) {
+      const ziel = initial.blatt
+      setActiveId(ziel)
+      raf = requestAnimationFrame(() => scrollTo(ziel))
+      retry1 = setTimeout(() => scrollTo(ziel), 200)
+      retry2 = setTimeout(() => scrollTo(ziel), 500)
       if (typeof document !== 'undefined' && document.fonts?.ready) {
-        document.fonts.ready.then(() => setTimeout(doScroll, 50))
+        document.fonts.ready.then(() => { if (!cancelled) scrollTo(ziel) })
       }
     }
-    scrollToHash()
-    window.addEventListener('hashchange', scrollToHash)
-    return () => window.removeEventListener('hashchange', scrollToHash)
+
+    // Spätere Hash-Änderungen (Klick im Verzeichnis): Content ist längst gesetzt,
+    // daher genügt ein sofortiger Scroll – kein Timer nötig.
+    const onHash = () => {
+      const d = getHashDetail()
+      if (d.tab !== tab || !d.blatt) return
+      setActiveId(d.blatt)
+      scrollTo(d.blatt)
+    }
+    window.addEventListener('hashchange', onHash)
+    return () => {
+      cancelled = true
+      window.removeEventListener('hashchange', onHash)
+      cancelAnimationFrame(raf)
+      clearTimeout(retry1)
+      clearTimeout(retry2)
+    }
   }, [tab])
 
   const handleNavClick = (e: React.MouseEvent, id: string) => {
@@ -231,11 +252,11 @@ export function Referenz({
                       <span className="lsref-bsp-n">({gruppe.beispiele.length})</span>
                     </summary>
                     <ol className="lsref-bsp-list">
-                      {gruppe.beispiele.map((bsp, i) => {
-                        // Stabiler Key aus dem gelieferten Node (der Consumer keyt seine
-                        // Beispiel-Elemente); der Index dient nur als Fallback für den
-                        // seltenen Fall eines Nicht-Elements (z.B. reiner String).
-                        const bspKey = (isValidElement(bsp) ? bsp.key : null) ?? i
+                      {gruppe.beispiele.map(bsp => {
+                        // Die Consumer liefern gekeyte Elemente – deren Key nutzen.
+                        // Fällt ausnahmsweise ein Node ohne eigenen Key an (z.B. ein
+                        // reiner String), dessen Textinhalt als stabilen Key nehmen.
+                        const bspKey = (isValidElement(bsp) ? bsp.key : null) ?? String(bsp)
                         return <li key={bspKey}>{bsp}</li>
                       })}
                     </ol>

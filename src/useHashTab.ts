@@ -18,8 +18,11 @@ function seg(i: number): string | undefined {
 //
 //   const [tab, setTab] = useHashTab(['uebung','quiz'] as const, 'uebung')
 export function useHashTab<T extends string>(allowed: readonly T[], fallback: T): [T, (v: T) => void] {
+  // `cfg` hält immer die aktuellen allowed/fallback für die Handler unten. Das
+  // Schreiben passiert nach dem Commit (Effect), nicht während des Renders –
+  // der useState-Initializer `parse` liest ohnehin den frischen useRef-Startwert.
   const cfg = useRef({ allowed, fallback })
-  cfg.current = { allowed, fallback }
+  useEffect(() => { cfg.current = { allowed, fallback } })
 
   const parse = (): T => {
     const h = (seg(0) ?? '') as T
@@ -56,8 +59,9 @@ export function useHashTab<T extends string>(allowed: readonly T[], fallback: T)
 //
 //   const [fs, setFs] = useHashSubTab(['claude','madis','rezepte'] as const, 'claude')
 export function useHashSubTab<T extends string>(allowed: readonly T[], fallback: T): [T, (v: T) => void] {
+  // Siehe useHashTab: aktuelle allowed/fallback nach dem Commit festhalten.
   const cfg = useRef({ allowed, fallback })
-  cfg.current = { allowed, fallback }
+  useEffect(() => { cfg.current = { allowed, fallback } })
 
   const parse = (): T => {
     const h = (seg(1) ?? '') as T
@@ -155,7 +159,7 @@ export function useTaskDeepLink<E extends HTMLElement = HTMLDivElement>(blattId:
       setHashDetail(blattId, nr, tab)
     }
     const io = new IntersectionObserver(update, { threshold: [0, 1] })
-    cards.forEach(c => io.observe(c))
+    for (const c of cards) io.observe(c)
     return () => io.disconnect()
   }, [blattId, tab])
 

@@ -12,12 +12,10 @@ function getStoredTheme(): Theme | null {
 
 export function useTheme() {
   const [theme, setTheme] = useState<Theme>(() => getStoredTheme() ?? getSystemTheme())
-  // Whether the user has an explicit, persisted theme. Read once on mount; the
-  // persist effect below keeps it true afterwards (matches previous behaviour).
-  const hasStoredPreference = useRef<boolean | undefined>(undefined)
-  if (hasStoredPreference.current === undefined) {
-    hasStoredPreference.current = getStoredTheme() !== null
-  }
+  // Whether the user has an explicit, persisted theme. Initialised from storage
+  // at mount (useRef keeps only the first value); the persist effect below sets
+  // it true afterwards (matches previous behaviour).
+  const hasStoredPreference = useRef(getStoredTheme() !== null)
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)

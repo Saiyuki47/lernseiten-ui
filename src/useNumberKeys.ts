@@ -4,7 +4,9 @@ import { useEffect, useRef } from 'react'
 // solange `active`. Tippen in Eingabefeldern wird ignoriert.
 export function useNumberKeys(count: number, onPick: (index: number) => void, active: boolean) {
   const cb = useRef(onPick)
-  cb.current = onPick
+  // „Latest ref": den aktuellen Callback nach dem Commit (nicht während des
+  // Renders) festhalten, damit der Keydown-Handler immer die frische Version liest.
+  useEffect(() => { cb.current = onPick })
   useEffect(() => {
     if (!active) return
     const handler = (e: KeyboardEvent) => {
@@ -24,7 +26,8 @@ export function useNumberKeys(count: number, onPick: (index: number) => void, ac
 // Ruft onEnter() bei Enter auf, solange `active` (Eingabefelder ausgenommen).
 export function useEnterKey(onEnter: () => void, active: boolean) {
   const cb = useRef(onEnter)
-  cb.current = onEnter
+  // „Latest ref" (siehe useNumberKeys): Callback nach dem Commit aktualisieren.
+  useEffect(() => { cb.current = onEnter })
   useEffect(() => {
     if (!active) return
     const handler = (e: KeyboardEvent) => {

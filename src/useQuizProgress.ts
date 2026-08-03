@@ -19,8 +19,12 @@ export interface QuizStats {
   yesterday: number
 }
 
-const STREAK_KEY = 'quiz-streak'
-const COUNTS_KEY = `quiz-counts:${(typeof document !== 'undefined' && document.title) || 'default'}`
+// Versionssuffix (`:v1`) im Schlüssel: ändert sich das gespeicherte Format später,
+// wird der Suffix erhöht und alte Daten unter dem alten Schlüssel einfach ignoriert
+// (readStreak/readCounts sind ohnehin gegen ungültige Daten abgesichert), statt
+// beim JSON.parse zu crashen. Die Umstellung auf :v1 setzt bestehende Zähler einmalig zurück.
+const STREAK_KEY = 'quiz-streak:v1'
+const COUNTS_KEY = `quiz-counts:v1:${(typeof document !== 'undefined' && document.title) || 'default'}`
 
 interface StreakStore {
   /** Letzter Tag mit richtiger Antwort auf IRGENDEINER Seite (YYYY-MM-DD). */
