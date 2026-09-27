@@ -12,12 +12,13 @@ export const LERNSEITEN: LernSeite[] = [
   { key: 'mathe', label: 'Mathematische Grundlagen', url: 'https://saiyuki47.github.io/Mathematische-Grundlagen/' },
   { key: 'bwl', label: 'Betriebswirtschaftslehre 1', url: 'https://saiyuki47.github.io/Betriebswirtschaftslehre-1/' },
   { key: 'datenbanken', label: 'Datenbanksysteme', url: 'https://saiyuki47.github.io/Datenbanksysteme/' },
+  { key: 'gitarre', label: 'Gitarre: Go K.K. Rider', url: 'https://saiyuki47.github.io/Animal-Crossing-Gitarre/' },
 ]
 
 // Tab-IDs (erstes Hash-Segment) je Seite – für die Tab-Mitnahme beim
 // Seitenwechsel im SiteNav. Die IDs sind über alle Seiten vereinheitlicht
 // (uebung/referenz/hilfsmittel/moodle/quiz/karten); 'schema' ist der
-// Datenbanken-Sonderfall. Muss den TABS-Listen der App.tsx entsprechen;
+// Datenbanken-Sonderfall, 'werkzeuge' ersetzt bei der Gitarren-Seite 'moodle'. Muss den TABS-Listen der App.tsx entsprechen;
 // fehlt ein Tab hier, landet der Wechsel schlimmstenfalls auf dem
 // Standard-Tab der Zielseite (useHashTab-Fallback), nie auf einem Fehler.
 const GEMEINSAME_TABS = ['uebung', 'referenz', 'hilfsmittel', 'moodle', 'quiz', 'karten'] as const
@@ -26,6 +27,7 @@ const SITE_TABS: Record<string, readonly string[]> = {
   mathe: GEMEINSAME_TABS,
   bwl: GEMEINSAME_TABS,
   datenbanken: [...GEMEINSAME_TABS, 'schema'],
+  gitarre: ['uebung', 'referenz', 'hilfsmittel', 'werkzeuge', 'quiz', 'karten'],
 }
 
 /**
