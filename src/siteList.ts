@@ -26,17 +26,17 @@ export const menueSeiten = (current?: string) => LERNSEITEN.filter(s => !s.eigen
 
 // Tab-IDs (erstes Hash-Segment) je Seite – für die Tab-Mitnahme beim
 // Seitenwechsel im SiteNav. Die IDs sind über alle Seiten vereinheitlicht
-// (uebung/referenz/hilfsmittel/moodle/quiz/karten); 'schema' ist der
+// (uebersicht/uebung/referenz/hilfsmittel/moodle/quiz/karten); 'schema' ist der
 // Datenbanken-Sonderfall, 'werkzeuge' ersetzt bei der Gitarren-Seite 'moodle'. Muss den TABS-Listen der App.tsx entsprechen;
 // fehlt ein Tab hier, landet der Wechsel schlimmstenfalls auf dem
 // Standard-Tab der Zielseite (useHashTab-Fallback), nie auf einem Fehler.
-const GEMEINSAME_TABS = ['uebung', 'referenz', 'hilfsmittel', 'moodle', 'quiz', 'karten'] as const
+const GEMEINSAME_TABS = ['uebersicht', 'uebung', 'referenz', 'hilfsmittel', 'moodle', 'quiz', 'karten'] as const
 const SITE_TABS: Record<string, readonly string[]> = {
   algebraische: GEMEINSAME_TABS,
   mathe: GEMEINSAME_TABS,
   bwl: GEMEINSAME_TABS,
   datenbanken: [...GEMEINSAME_TABS, 'schema'],
-  gitarre: ['uebung', 'referenz', 'hilfsmittel', 'werkzeuge', 'quiz', 'karten'],
+  gitarre: ['uebersicht', 'uebung', 'referenz', 'hilfsmittel', 'werkzeuge', 'quiz', 'karten'],
 }
 
 /**

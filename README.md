@@ -8,6 +8,10 @@ Komponenten, Hooks, Typen **und** das Basis-CSS.
 
 ## Komponenten
 
+- **`Uebersicht`** – Standard-Tab jeder Lernseite: rendert die selbst
+  geschriebene `Übersicht.md` aus dem Hauptordner des Repos (GitHub-Markdown via
+  `marked`). Die App lädt sie per `import uebersicht from '../Übersicht.md?raw'`
+  und übergibt sie als `<Uebersicht markdown={uebersicht} />`.
 - **`Quiz`** – Quiz-Engine mit 7 Fragetypen (Single-/Mehrfachauswahl, Zuordnung,
   Reihenfolge, Kategorisieren, Eingabe, Wahr/Falsch), gemischten Fragen &
   Optionen und reichem Falsch-Feedback. Fragen als Prop: `<Quiz fragen={…} />`.

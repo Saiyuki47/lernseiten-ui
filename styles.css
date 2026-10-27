@@ -133,10 +133,13 @@ a.logo:hover { opacity: 0.85; }
   padding: 4px;
   flex-wrap: wrap;
 }
+/* Breite nach Inhalt (statt gleich breit mit min-width): so passen auch 7–8 Tabs
+   (Datenbanksysteme, Gitarren-Labels) in die 900px-Spalte; den Restplatz
+   verteilt flex-grow gleichmäßig, das ergibt den sichtbaren Seitenabstand. */
 .tab {
-  flex: 1;
-  min-width: 120px;
-  padding: 8px 16px;
+  flex: 1 1 auto;
+  padding: 8px;
+  white-space: nowrap;
   font-size: 13px;
   font-family: var(--font-sans);
   font-weight: 500;
@@ -558,6 +561,64 @@ a.logo:hover { opacity: 0.85; }
 @media print{.hilf-fs-switch{display:none!important}}
 
 /* ============================================================================
+   ÜBERSICHT – gehört zur <Uebersicht>-Komponente (Standard-Tab): die gerenderte
+   Übersicht.md des Repos. Typografie für Überschriften, Listen, Links, Code,
+   Zitate und Tabellen (der Reset oben nimmt allen Elementen Margin/Padding).
+   ============================================================================ */
+.uebersicht { font-size: 14px; line-height: 1.7; }
+.uebersicht > div > :first-child { margin-top: 0; }
+.uebersicht > div > :last-child { margin-bottom: 0; }
+.uebersicht h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; margin: 0 0 0.75rem; }
+.uebersicht h2 {
+  font-size: 17px;
+  font-weight: 600;
+  margin: 1.75rem 0 0.6rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--border);
+}
+.uebersicht h3 { font-size: 15px; font-weight: 600; margin: 1.25rem 0 0.4rem; }
+.uebersicht p,
+.uebersicht ul,
+.uebersicht ol,
+.uebersicht pre,
+.uebersicht table,
+.uebersicht blockquote { margin: 0 0 0.9rem; }
+.uebersicht ul, .uebersicht ol { padding-left: 1.4rem; }
+.uebersicht li + li { margin-top: 0.25rem; }
+.uebersicht li > ul, .uebersicht li > ol { margin: 0.25rem 0 0; }
+.uebersicht strong { font-weight: 600; }
+.uebersicht a { color: var(--blue); text-decoration: none; }
+.uebersicht a:hover { text-decoration: underline; }
+.uebersicht code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--bg3);
+  border-radius: 5px;
+  padding: 1px 5px;
+}
+.uebersicht pre {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.9rem 1.1rem;
+  overflow-x: auto;
+}
+.uebersicht pre code { background: none; padding: 0; font-size: 13px; }
+.uebersicht blockquote {
+  border-left: 3px solid var(--blue);
+  background: var(--blue-dim);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 0.6rem 1rem;
+  color: var(--text2);
+}
+.uebersicht blockquote > :last-child { margin-bottom: 0; }
+.uebersicht hr { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+.uebersicht table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; font-size: 13px; }
+.uebersicht th, .uebersicht td { border: 1px solid var(--border2); padding: 6px 10px; text-align: left; }
+.uebersicht th { background: var(--bg3); font-weight: 600; }
+.uebersicht img { max-width: 100%; }
+
+/* ============================================================================
    A11y: sichtbarer Tastatur-Fokus für alle interaktiven Steuerelemente.
    (Maus-Klick zeigt dank :focus-visible keinen Rahmen.)
    ============================================================================ */
@@ -570,7 +631,8 @@ a.logo:hover { opacity: 0.85; }
 .zoom-select:focus-visible,
 .site-nav-btn:focus-visible,
 .lsref-nav a:focus-visible,
-.lsref-bsp>summary:focus-visible {
+.lsref-bsp>summary:focus-visible,
+.uebersicht a:focus-visible {
   outline: 2px solid var(--blue);
   outline-offset: 2px;
   border-radius: 6px;

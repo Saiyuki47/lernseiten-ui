@@ -8,6 +8,14 @@ import type { TabDef } from './Tabs'
 // siteList.ts/SITE_TABS nachtragen, damit die Tab-Mitnahme sie kennt).
 
 const ICONS: Record<string, ReactNode> = {
+  // Info-„i" im Kreis (Übersicht zur Seite)
+  uebersicht: (
+    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="16" x2="12" y2="12" />
+      <line x1="12" y1="8" x2="12.01" y2="8" />
+    </svg>
+  ),
   // Dokument mit Eselsohr + Zeilen
   uebung: (
     <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -65,6 +73,7 @@ const ICONS: Record<string, ReactNode> = {
 }
 
 const LABELS: Record<string, string> = {
+  uebersicht: 'Übersicht',
   uebung: 'Übungsblätter',
   referenz: 'Referenz',
   hilfsmittel: 'Hilfsmittel',
@@ -74,8 +83,11 @@ const LABELS: Record<string, string> = {
   schema: 'Schema',
 }
 
-/** Einheitliche Reihenfolge der gemeinsamen Tabs (Sonderfälle wie 'schema' hängen die Apps hinten an). */
-export const STANDARD_TAB_REIHENFOLGE = ['uebung', 'referenz', 'hilfsmittel', 'moodle', 'karten', 'quiz'] as const
+/**
+ * Einheitliche Reihenfolge der gemeinsamen Tabs (Sonderfälle wie 'schema' hängen die Apps hinten an).
+ * 'uebersicht' steht vorn und ist der Standard-Tab (Fallback von useHashTab, saubere URL ohne Hash).
+ */
+export const STANDARD_TAB_REIHENFOLGE = ['uebersicht', 'uebung','referenz', 'hilfsmittel', 'moodle', 'karten', 'quiz'] as const
 
 /** TabDefs für die Tab-Leiste aus Standard-IDs bauen (Label + Icon zentral). */
 export function tabDefs<T extends string>(ids: readonly T[]): TabDef<T>[] {

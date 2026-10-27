@@ -3,7 +3,10 @@
   "version": "0.1.0",
   "description": "Geteilte UI-Engine (Quiz, Theme) für die Lernseiten",
   "type": "module",
-  "files": ["dist", "styles.css"],
+  "files": [
+    "dist",
+    "styles.css"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -21,7 +24,8 @@
     "react-dom": "^19.0.0"
   },
   "dependencies": {
-    "katex": "^0.16.9 || ^0.17.0"
+    "katex": "^0.16.9 || ^0.17.0",
+    "marked": "^18.1.2"
   },
   "devDependencies": {
     "@types/katex": "^0.16.8",
