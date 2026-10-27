@@ -12,7 +12,7 @@ export const LERNSEITEN: LernSeite[] = [
   { key: 'mathe', label: 'Mathematische Grundlagen', url: 'https://saiyuki47.github.io/Mathematische-Grundlagen/' },
   { key: 'bwl', label: 'Betriebswirtschaftslehre 1', url: 'https://saiyuki47.github.io/Betriebswirtschaftslehre-1/' },
   { key: 'datenbanken', label: 'Datenbanksysteme', url: 'https://saiyuki47.github.io/Datenbanksysteme/' },
-  { key: 'gitarre', label: 'Gitarre: Go K.K. Rider', url: 'https://saiyuki47.github.io/Animal-Crossing-Gitarre/' },
+  { key: 'gitarre', label: 'Gitarren-Songbuch', url: 'https://saiyuki47.github.io/Gitarren-Songbuch/' },
 ]
 
 // Tab-IDs (erstes Hash-Segment) je Seite – für die Tab-Mitnahme beim
