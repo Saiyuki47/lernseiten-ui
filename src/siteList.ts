@@ -2,6 +2,11 @@ export interface LernSeite {
   key: string
   label: string
   url: string
+  /**
+   * Eigenständige Seite: erscheint nur im eigenen Menü (als aktuelle Seite) und wird
+   * von den anderen Lernseiten nicht verlinkt.
+   */
+  eigenstaendig?: true
 }
 
 // Die Lernfächer als GitHub-Pages-Projektseiten. Zentrale Liste, damit alle
@@ -12,8 +17,12 @@ export const LERNSEITEN: LernSeite[] = [
   { key: 'mathe', label: 'Mathematische Grundlagen', url: 'https://saiyuki47.github.io/Mathematische-Grundlagen/' },
   { key: 'bwl', label: 'Betriebswirtschaftslehre 1', url: 'https://saiyuki47.github.io/Betriebswirtschaftslehre-1/' },
   { key: 'datenbanken', label: 'Datenbanksysteme', url: 'https://saiyuki47.github.io/Datenbanksysteme/' },
-  { key: 'gitarre', label: 'Gitarren-Songbuch', url: 'https://saiyuki47.github.io/Gitarren-Songbuch/' },
+  // Hobby-Seite, kein Studienfach: verlinkt selbst auf die Lernfächer, wird von ihnen aber nicht verlinkt.
+  { key: 'gitarre', label: 'Gitarren-Songbuch', url: 'https://saiyuki47.github.io/Gitarren-Songbuch/', eigenstaendig: true },
 ]
+
+/** Einträge im Menü der Seite `current` – eigenständige Seiten nur auf sich selbst. */
+export const menueSeiten = (current?: string) => LERNSEITEN.filter(s => !s.eigenstaendig || s.key === current)
 
 // Tab-IDs (erstes Hash-Segment) je Seite – für die Tab-Mitnahme beim
 // Seitenwechsel im SiteNav. Die IDs sind über alle Seiten vereinheitlicht
